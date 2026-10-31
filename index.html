@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071713">
+  <title>Smart Green Energy | BEMS + PV + BESS</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #edf7f0;
+      --muted: #9db4a8;
+      --night: #071713;
+      --panel: #10251e;
+      --panel-2: #153229;
+      --line: rgba(215, 241, 223, .13);
+      --green: #63e3a1;
+      --green-2: #27bb83;
+      --mint: #b7f4d0;
+      --amber: #ffc56c;
+      --coral: #ff7d73;
+      --blue: #83b9ff;
+      --purple: #c1a6ff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .28);
+      --radius: 22px;
+      font-family: "Leelawadee UI", Tahoma, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--night); scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 82% 4%, rgba(35, 136, 91, .16), transparent 34rem),
+        radial-gradient(ellipse at 0% 85%, rgba(54, 116, 95, .12), transparent 38rem),
+        var(--night);
+      overflow: hidden;
+    }
+    button { font: inherit; }
+    .deck { position: relative; width: 100%; height: 100dvh; overflow: hidden; }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: 0;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #426b58 transparent;
+      background:
+        radial-gradient(ellipse at 100% 0%, rgba(41, 129, 83, .10), transparent 35rem),
+        transparent;
+    }
+    .slide.active { display: block; animation: enter .42s ease both; }
+    @keyframes enter { from { opacity: .25; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .slide-inner { width: min(100%, 1500px); margin: 0 auto; }
+    .eyebrow {
+      display: inline-flex; gap: 10px; align-items: center;
+      color: var(--green); text-transform: uppercase; letter-spacing: .16em;
+      font-size: 12px; font-weight: 800;
+    }
+    .eyebrow:before { content: ""; width: 24px; height: 1px; background: currentColor; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 18px; font-size: clamp(42px, 7.2cqw, 104px); line-height: 1.12; letter-spacing: -.025em; }
+    h2 { margin: 13px 0 13px; font-size: clamp(30px, 4.1cqw, 54px); line-height: 1.3; letter-spacing: normal; }
+    h3 { margin-bottom: 9px; font-size: 19px; line-height: 1.4; }
+    p { color: var(--muted); line-height: 1.7; }
+    strong { color: var(--ink); }
+    .lead { max-width: 820px; font-size: clamp(16px, 1.55cqw, 22px); line-height: 1.65; }
+    .sublead { color: var(--muted); max-width: 900px; font-size: 15px; line-height: 1.7; }
+    .title-row { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 28px; }
+    .title-row .sublead { max-width: 500px; margin: 0 0 5px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px;
+      border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255,255,255,.035); color: #c4d7cc; font-size: 12px;
+    }
+    .tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(20, 48, 37, .88), rgba(11, 29, 23, .9));
+      box-shadow: var(--shadow);
+    }
+    .card.pad { padding: clamp(20px, 2.3cqw, 34px); }
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .muted { color: var(--muted); }
+    .accent { color: var(--green); }
+    .amber { color: var(--amber); }
+    .coral { color: var(--coral); }
+    .blue { color: var(--blue); }
+    .purple { color: var(--purple); }
+    .small { font-size: 12px; line-height: 1.65; }
+    .tiny { font-size: 10px; line-height: 1.55; }
+    .mono { font-family: "Cascadia Code", Consolas, monospace; }
+    .metric {
+      padding: 21px 22px; min-height: 130px; position: relative; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 18px;
+      background: linear-gradient(145deg, rgba(26, 61, 46, .74), rgba(13, 33, 25, .92));
+    }
+    .metric:after {
+      content: ""; position: absolute; width: 95px; height: 95px; right: -28px; bottom: -44px;
+      border: 1px solid rgba(99, 227, 161, .20); border-radius: 50%;
+      box-shadow: 0 0 0 14px rgba(99,227,161,.025), 0 0 0 29px rgba(99,227,161,.02);
+    }
+    .metric .value { display: block; font-size: clamp(29px, 3.3cqw, 46px); font-weight: 850; letter-spacing: -.04em; line-height: 1; }
+    .metric .label { display: block; margin-top: 11px; color: var(--muted); font-size: 13px; }
+    .metric .note { display: block; margin-top: 5px; color: #d3e2d9; font-size: 11px; }
+    .statline { display: flex; gap: 14px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .statline:last-child { border-bottom: 0; }
+    .statline .num { width: 125px; flex: 0 0 auto; font-size: 22px; font-weight: 800; }
+    .statline .desc { color: var(--muted); font-size: 13px; }
+    .tradeoff-card .statline {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      align-items: start;
+      gap: 8px 14px;
+    }
+    .tradeoff-card .statline .num {
+      width: auto;
+      min-width: 0;
+      font-size: 18px;
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+    .tradeoff-card .statline .desc {
+      min-width: 0;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .callout {
+      border-left: 3px solid var(--amber); padding: 13px 16px;
+      color: #d7e4dc; background: rgba(255, 197, 108, .075);
+      border-radius: 0 12px 12px 0; line-height: 1.65; font-size: 13px;
+    }
+    .callout.green { border-left-color: var(--green); background: rgba(99,227,161,.07); }
+    .callout.red { border-left-color: var(--coral); background: rgba(255,125,115,.07); }
+    .divider { height: 1px; background: var(--line); margin: 18px 0; }
+    .list { margin: 12px 0 0; padding: 0; list-style: none; }
+    .list li { display: flex; gap: 11px; margin: 10px 0; color: #c2d3c9; font-size: 13px; line-height: 1.6; }
+    .list li:before { content: "↗"; color: var(--green); font-weight: 900; }
+    .pillrow { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      padding: 7px 10px; border-radius: 9px; background: rgba(99,227,161,.09);
+      border: 1px solid rgba(99,227,161,.16); color: #c6f4d8; font-size: 11px;
+    }
+    .section-no { color: rgba(183,244,208,.42); font: 800 13px "Cascadia Code", monospace; }
+
+    /* Cover */
+    .cover { display: grid; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 56px; min-height: 0; }
+    .cover h1 { line-height: 1.02; }
+    .cover h1 .line2 { display: block; color: var(--green); }
+    .cover h1 .line3 { display: block; color: #d8e8dc; font-size: .56em; letter-spacing: -.025em; margin-top: 17px; }
+    .cover-meta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 28px; }
+    .cover-art { position: relative; }
+    .cover-art svg { width: 100%; filter: drop-shadow(0 28px 55px rgba(0,0,0,.28)); }
+    .cover-orbit { position: absolute; inset: 8% 0 0; border: 1px solid rgba(99,227,161,.12); border-radius: 50%; transform: rotate(-17deg) scale(1.05,.43); pointer-events: none; }
+    .cover-foot { display: flex; align-items: center; gap: 10px; color: #91aa9c; font-size: 12px; margin-top: 42px; }
+    .cover-foot i { display: block; width: 38px; height: 1px; background: var(--green); }
+
+    /* Building and roof */
+    .building-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: stretch; }
+    .building-svg { width: 100%; height: 100%; min-height: 390px; }
+    .roof-wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+    .roof-svg { width: 100%; height: auto; display: block; }
+    .roof-metric { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .micro { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.025); }
+    .micro b { display: block; font-size: 19px; }
+    .micro span { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .module-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; }
+    .module-grid span { aspect-ratio: 1.4 / 1; border-radius: 2px; border: 1px solid rgba(147,204,255,.43); background: linear-gradient(135deg,#286584,#173c54); position: relative; }
+    .module-grid span:after { content: ""; position: absolute; inset: 0 50%; width: 1px; background: rgba(185,226,255,.20); }
+    .module-grid span:nth-child(5n):not(:nth-child(20n)) { margin-right: 1px; }
+    .area-bar { height: 13px; display: flex; overflow: hidden; border-radius: 9px; background: #24352f; }
+    .area-bar span:first-child { width: 94.7%; background: linear-gradient(90deg,#287aa0,#69c1dc); }
+    .area-bar span:last-child { flex: 1; background: repeating-linear-gradient(45deg,#ffc56c,#ffc56c 3px,#7b5b2b 3px,#7b5b2b 6px); }
+
+    /* Charts */
+    .chart { width: 100%; height: auto; display: block; overflow: visible; }
+    .chart text { font-family: "Leelawadee UI", "Noto Sans Thai", Tahoma, sans-serif; fill: #a7baaf; font-size: 11px; }
+    .chart .gridline { stroke: rgba(222,239,227,.13); stroke-width: 1; }
+    .chart .axisline { stroke: rgba(222,239,227,.28); stroke-width: 1; }
+    .chart .line-load { stroke: var(--amber); fill: none; stroke-width: 3; }
+    .chart .line-pv { stroke: var(--green); fill: none; stroke-width: 3; }
+    .chart .line-grid { stroke: var(--coral); fill: none; stroke-width: 2.5; }
+    .chart .line-soc { stroke: var(--purple); fill: none; stroke-width: 3; }
+    .chart .bar { fill: #317e62; }
+    .chart .bar-blue { fill: #438fc1; }
+    .chart .bar-orange { fill: #e5a84c; }
+    .chart .bar-red { fill: #d65b57; }
+    .chart .marker { stroke: #081711; stroke-width: 1.5; }
+    .legend { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px; color: #c0d0c7; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend i { width: 18px; height: 3px; display: inline-block; border-radius: 3px; }
+    .legend .lg-amber { background: var(--amber); }
+    .legend .lg-green { background: var(--green); }
+    .legend .lg-coral { background: var(--coral); }
+    .legend .lg-purple { background: var(--purple); }
+    .legend .lg-blue { background: var(--blue); }
+
+    /* Architecture diagram */
+    .flow { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; align-items: stretch; position: relative; }
+    .flow-node { text-align: center; padding: 19px 13px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.035); position: relative; }
+    .flow-node:not(:last-child):after { content: "›"; position: absolute; top: 36%; right: -16px; width: 20px; color: var(--green); font-size: 31px; font-weight: 300; z-index: 1; }
+    .flow-icon { height: 48px; display: grid; place-items: center; font-size: 26px; color: var(--green); }
+    .flow-node b { display: block; font-size: 13px; }
+    .flow-node small { display: block; color: var(--muted); margin-top: 7px; font-size: 10px; line-height: 1.5; }
+
+    /* Battery */
+    .battery-rack { display: grid; grid-template-columns: repeat(5,1fr); gap: 9px; }
+    .string { padding: 11px; border: 1px solid rgba(131,185,255,.24); border-radius: 13px; background: rgba(37,76,108,.14); }
+    .string-label { color: var(--blue); font-size: 10px; font-weight: 800; margin-bottom: 7px; }
+    .module-stack { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; }
+    .module-stack i { display: block; height: 13px; border-radius: 3px; background: linear-gradient(90deg,#2c688b,#408fb2); border: 1px solid rgba(166,220,246,.25); }
+    .ladder { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 9px; align-items: center; }
+    .ladder .step { padding: 15px; border-radius: 13px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+    .ladder .step b { display: block; font-size: 19px; }
+    .ladder .arrow { color: var(--green); font-size: 24px; }
+
+    /* Economics */
+    .scenario-row { display: grid; grid-template-columns: 145px 1fr 125px 95px; gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .scenario-row:last-child { border-bottom: 0; }
+    .scenario-name { font-size: 12px; font-weight: 800; }
+    .scenario-track { height: 17px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.055); }
+    .scenario-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#297d60,#64e3a1); }
+    .scenario-fill.base { background: linear-gradient(90deg,#b45e42,#ff9b67); }
+    .scenario-fill.pv { background: linear-gradient(90deg,#3477a6,#78bff2); }
+    .scenario-fill.bess { background: linear-gradient(90deg,#6e62a4,#b8a2fb); }
+    .scenario-fill.dr { background: linear-gradient(90deg,#178c6b,#64e3a1); }
+    .scenario-money { text-align: right; font: 800 14px "Cascadia Code", Consolas, monospace; }
+    .scenario-save { text-align: right; color: var(--green); font-size: 12px; font-weight: 800; }
+    .payback-track { height: 9px; border-radius: 99px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .payback-track i { display: block; height: 100%; background: var(--amber); border-radius: inherit; }
+
+    /* Footer navigation */
+    .controls {
+      position: fixed; z-index: 30; left: 50%; bottom: 17px; transform: translateX(-50%);
+      display: flex; gap: 7px; align-items: center; padding: 8px;
+      border: 1px solid rgba(204,236,215,.15); border-radius: 999px;
+      background: rgba(5, 17, 13, .86); backdrop-filter: blur(18px);
+      box-shadow: 0 12px 38px rgba(0,0,0,.28);
+    }
+    .ctrl {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border: 1px solid transparent; border-radius: 50%; color: var(--ink);
+      background: transparent; cursor: pointer; transition: .2s ease;
+    }
+    .ctrl:hover { color: var(--green); border-color: rgba(99,227,161,.32); background: rgba(99,227,161,.08); }
+    .ctrl:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+    .counter { min-width: 82px; text-align: center; color: #c7d7cd; font: 700 12px "Cascadia Code", Consolas, monospace; }
+    .progress { position: fixed; z-index: 40; top: 0; left: 0; height: 3px; background: var(--green); box-shadow: 0 0 12px rgba(99,227,161,.7); transition: width .25s ease; }
+    .rail { position: fixed; z-index: 20; right: 24px; top: 50%; transform: translateY(-50%); display: grid; gap: 9px; }
+    .rail button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: #476457; transition: .2s ease; }
+    .rail button.active { height: 23px; border-radius: 9px; background: var(--green); }
+    .hint { position: fixed; z-index: 10; left: 30px; bottom: 28px; color: rgba(192,211,198,.48); font-size: 10px; letter-spacing: .08em; }
+
+    
+    
+    
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+    @media print {
+      @page { size: 16in 9in; margin: 0; }
+      :root { color-scheme: light; }
+      html, body { width: 16in; height: auto; margin: 0; overflow: visible; background: #071713 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .deck { width: 16in; height: auto; overflow: visible; }
+      .slide, .slide.active {
+        position: relative; inset: auto; display: block !important; width: 16in; height: 9in;
+        overflow: hidden; page-break-after: always; break-after: page;
+        padding: 30px 42px; animation: none;
+      }
+      .controls, .rail, .progress, .hint { display: none !important; }
+      .slide-inner { width: 100%; max-width: none; }
+      .card, .metric { box-shadow: none; }
+      .card.pad { padding: 13px; }
+      .cover { min-height: 0; }
+      body { font-family: "Leelawadee UI", Tahoma, sans-serif; font-size: 11pt; }
+      h1 { font-size: 42pt; line-height: 1.15; letter-spacing: -.02em; }
+      h2 { margin: 7px 0; font-size: 25pt; line-height: 1.32; letter-spacing: normal; }
+      h3 { margin-bottom: 6px; font-size: 14pt; line-height: 1.4; }
+      .eyebrow { gap: 6px; font-size: 8pt; }
+      .eyebrow:before { width: 16px; }
+      .title-row { gap: 18px; margin-bottom: 12px; }
+      .title-row .sublead { max-width: 470px; margin-bottom: 2px; font-size: 10pt; line-height: 1.5; }
+      .grid { gap: 9px; }
+      .divider { margin: 9px 0; }
+      .micro { padding: 8px; }
+      .micro b { font-size: 13pt; }
+      .micro span { font-size: 8pt; line-height: 1.4; }
+      .metric { min-height: 80px; padding: 12px; }
+      .metric .value { font-size: 26pt; }
+      .metric .label { margin-top: 6px; font-size: 9pt; }
+      .metric .note { font-size: 8pt; }
+      .statline { gap: 9px; padding: 6px 0; }
+      .statline .num { width: 100px; font-size: 15pt; }
+      .statline .desc { font-size: 9pt; }
+      .tradeoff-card .statline { grid-template-columns: 150px minmax(0, 1fr); gap: 6px 12px; align-items: start; }
+      .tradeoff-card .statline .num { width: auto; font-size: 12pt; line-height: 1.5; }
+      .tradeoff-card .statline .desc { font-size: 9.5pt; line-height: 1.55; }
+      .callout { padding: 8px 10px; font-size: 10pt; line-height: 1.5; }
+      .small { font-size: 9.5pt; line-height: 1.5; }
+      .tiny { font-size: 8pt; line-height: 1.5; }
+      .chart { max-height: 205px; }
+      .building-svg { min-height: 0; max-height: 350px; }
+      .flow-node { padding: 10px 8px; }
+      .flow-icon { height: 32px; font-size: 20px; }
+      .flow-node b { font-size: 10pt; }
+      .flow-node small { margin-top: 4px; font-size: 7pt; }
+      .ladder .step { padding: 9px; }
+      .ladder .step b { font-size: 14pt; }
+      .battery-rack { gap: 5px; }
+      .string { padding: 6px; }
+      .module-stack i { height: 8px; }
+      .scenario-row { gap: 8px; padding: 6px 0; }
+      .cover-foot { margin-top: 20px; }
+      .cover-art svg { max-height: 6in; }
+      .roof-svg { max-height: 4.4in; }
+      .slide:last-child { page-break-after: auto; break-after: auto; }
+    }
+  
+    /* ================= MOTION + INTERACTION UPGRADE ================= */
+    #ambient { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .deck { z-index: 1; }
+    .wipe { position: fixed; inset: 0; z-index: 35; pointer-events: none; opacity: 0; transform: translateX(-100%);
+      background: linear-gradient(100deg, transparent 30%, rgba(99,227,161,.16) 50%, transparent 70%); }
+    .wipe.go { animation: wipe .8s cubic-bezier(.5,.1,.2,1); }
+    .wipe.back { animation-name: wipeBack; }
+    @keyframes wipe { 0% { opacity: 1; transform: translateX(-100%); } 100% { opacity: 0; transform: translateX(100%); } }
+    @keyframes wipeBack { 0% { opacity: 1; transform: translateX(100%); } 100% { opacity: 0; transform: translateX(-100%); } }
+
+    .slide.active.dir-next { animation: inNext .65s cubic-bezier(.2,.8,.2,1) both; }
+    .slide.active.dir-prev { animation: inPrev .65s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes inNext { from { opacity: 0; transform: translateX(70px) scale(.99); } }
+    @keyframes inPrev { from { opacity: 0; transform: translateX(-70px) scale(.99); } }
+
+    .slide.active .rv { animation: rise .85s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(var(--i, 0) * 65ms + 140ms); }
+    @keyframes rise { from { opacity: 0; transform: translateY(30px) scale(.985); } }
+
+    /* card hover + cursor spotlight */
+    .card, .metric { position: relative; transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s, box-shadow .35s; }
+    .card:hover, .metric:hover { transform: translateY(-4px); border-color: rgba(99,227,161,.32); box-shadow: 0 30px 90px rgba(0,0,0,.34), 0 0 0 1px rgba(99,227,161,.08); }
+    .card.still:hover { transform: none; }
+    .card::before, .metric::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s;
+      background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(99,227,161,.10), transparent 62%); }
+    .card:hover::before, .metric:hover::before { opacity: 1; }
+
+    /* shimmering headline accents */
+    h1 .line2, h2 .accent { background: linear-gradient(100deg, var(--green) 0%, var(--mint) 38%, var(--green-2) 62%, var(--green) 100%);
+      background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 7s linear infinite; }
+    @keyframes shimmer { to { background-position: -220% 0; } }
+
+    /* cover */
+    .cover-art { transition: transform .25s ease-out; will-change: transform; }
+    .cover-art svg { position: relative; animation: floaty 7s ease-in-out infinite; }
+    @keyframes floaty { 50% { transform: translateY(-10px); } }
+    .cover-art svg path[stroke-dasharray] { animation: dashflow 1.2s linear infinite; }
+    @keyframes dashflow { to { stroke-dashoffset: -30; } }
+    .building-svg path[stroke-dasharray] { animation: dashflow14 1s linear infinite; }
+    @keyframes dashflow14 { to { stroke-dashoffset: -28; } }
+    .cover-art svg g[filter] path { animation: flick 5s ease-in-out infinite; }
+    .cover-art svg g[filter] path:nth-child(2n) { animation-delay: -1.7s; }
+    .cover-art svg g[filter] path:nth-child(3n) { animation-delay: -3.1s; animation-duration: 7s; }
+    @keyframes flick { 0%, 100% { opacity: 1; } 45% { opacity: .42; } 60% { opacity: .9; } }
+    .sun { position: absolute; top: -3%; right: 3%; width: 92px; height: 92px; border-radius: 50%; z-index: 0;
+      background: radial-gradient(circle at 40% 38%, #fff1c6, #ffc56c 55%, #d98b2b);
+      box-shadow: 0 0 60px 18px rgba(255,197,108,.32); animation: sunpulse 4.5s ease-in-out infinite; }
+    .sun:before { content: ""; position: absolute; inset: -38px; border-radius: 50%;
+      background: repeating-conic-gradient(from 0deg, rgba(255,197,108,.38) 0 3deg, transparent 3deg 20deg);
+      -webkit-mask: radial-gradient(circle, transparent 44%, #000 46%, transparent 70%); mask: radial-gradient(circle, transparent 44%, #000 46%, transparent 70%);
+      animation: spin 30s linear infinite; }
+    @keyframes sunpulse { 50% { transform: scale(1.07); box-shadow: 0 0 80px 26px rgba(255,197,108,.40); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* modules & battery */
+    .module-grid span { animation: modIn .55s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(var(--k, 0) * 7ms + 300ms); }
+    .module-grid span.spark { animation: spark 1s ease; }
+    @keyframes modIn { from { opacity: 0; transform: scale(.3); } }
+    @keyframes spark { 40% { filter: brightness(2.3); box-shadow: 0 0 14px #9be0ff; } }
+    .module-stack i { animation: modIn .5s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(var(--k, 0) * 22ms + 250ms); }
+    .string { animation: breathe 4.5s ease-in-out infinite; }
+    .string:nth-child(2n) { animation-delay: -1.5s; }
+    .string:nth-child(3n) { animation-delay: -3s; }
+    @keyframes breathe { 50% { box-shadow: 0 0 24px rgba(131,185,255,.20); border-color: rgba(131,185,255,.45); } }
+
+    /* bars + charts */
+    .scenario-fill, .payback-track i { transition: width 1.3s cubic-bezier(.2,.8,.2,1); }
+    .area-bar span:first-child { animation: barIn 1.3s cubic-bezier(.2,.8,.2,1) .3s backwards; }
+    @keyframes barIn { from { width: 0; } }
+    .chart .gbar { transform-box: fill-box; transform-origin: 50% 100%; animation: growY .9s cubic-bezier(.2,.8,.2,1) backwards; }
+    @keyframes growY { from { transform: scaleY(0); } }
+    .chart .dot { transform-box: fill-box; transform-origin: center; animation: dotIn .5s cubic-bezier(.2,.8,.2,1) backwards; }
+    @keyframes dotIn { from { opacity: 0; transform: scale(0); } }
+    .chart .area { animation: fadeIn 1.4s ease .5s backwards; }
+    @keyframes fadeIn { from { opacity: 0; } }
+    .chart .hit { fill: transparent; cursor: crosshair; }
+
+    /* tooltip */
+    .tip { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; opacity: 0; transition: opacity .15s;
+      padding: 10px 13px; border-radius: 13px; min-width: 168px; font-size: 12px; line-height: 1.65; color: #dcebe2;
+      background: rgba(5,17,13,.93); border: 1px solid rgba(99,227,161,.28); backdrop-filter: blur(12px); box-shadow: 0 14px 40px rgba(0,0,0,.42); }
+    .tip b { color: var(--ink); }
+    .tip .row { display: flex; justify-content: space-between; gap: 18px; }
+    .tip .row i { font-style: normal; display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
+    .tip .row i:before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c, #9db4a8); }
+    .tip .head { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 4px; padding-bottom: 5px; border-bottom: 1px solid var(--line); }
+
+    /* controls shared by the two interactive slides */
+    .seg { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.03); flex-wrap: wrap; }
+    .seg button { border: 0; background: transparent; color: #b9cdc1; padding: 8px 15px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 700; transition: .25s; }
+    .seg button:hover { color: var(--ink); background: rgba(99,227,161,.08); }
+    .seg button.on { background: linear-gradient(135deg, #27bb83, #63e3a1); color: #052018; }
+    .rng { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px; outline: none; cursor: pointer;
+      background: linear-gradient(90deg, var(--green) var(--p, 0%), rgba(255,255,255,.11) var(--p, 0%)); }
+    .rng::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #eafff3; border: 3px solid var(--green); box-shadow: 0 0 0 6px rgba(99,227,161,.15); transition: box-shadow .2s; }
+    .rng:active::-webkit-slider-thumb { box-shadow: 0 0 0 11px rgba(99,227,161,.2); }
+    .rng::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #eafff3; border: 3px solid var(--green); }
+    .rng:focus-visible { outline: 2px solid var(--green); outline-offset: 6px; }
+    .playbtn { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; border: 0; cursor: pointer; font-size: 15px; font-weight: 800;
+      color: #052018; background: linear-gradient(135deg, #27bb83, #63e3a1); box-shadow: 0 0 0 0 rgba(99,227,161,.5); transition: transform .2s; }
+    .playbtn:hover { transform: scale(1.08); }
+    .playbtn.playing { animation: ring 1.8s ease-out infinite; }
+    @keyframes ring { to { box-shadow: 0 0 0 16px rgba(99,227,161,0); } }
+    .xctl { display: flex; align-items: center; gap: 16px; }
+    .xtop { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+    .xtop .xctl { flex: 1; min-width: 320px; }
+    .xctl .rng { flex: 1; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid var(--line); color: #c4d7cc; background: rgba(255,255,255,.04); transition: .4s; }
+    .chip.peak { color: #ffd0cb; border-color: rgba(255,125,115,.45); background: rgba(255,125,115,.12); }
+    .chip.off { color: #c6f4d8; border-color: rgba(99,227,161,.35); background: rgba(99,227,161,.1); }
+    .chip.dr { color: #ffe0a6; border-color: rgba(255,197,108,.55); background: rgba(255,197,108,.14); animation: pulseChip 1.2s ease-in-out infinite; }
+    .chip[hidden] { display: none; }
+    @keyframes pulseChip { 50% { box-shadow: 0 0 0 7px rgba(255,197,108,0); background: rgba(255,197,108,.26); } }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+    .xlegend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; color: #b6c9bf; font-size: 11px; }
+    .xlegend span { display: inline-flex; align-items: center; gap: 7px; }
+    .xlegend i { width: 11px; height: 11px; border-radius: 3px; background: var(--c); display: inline-block; }
+
+    /* explorer */
+    .explorer { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-top: 16px; }
+    .xside { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+    .xside .micro { padding: 15px; }
+    .xside .micro b { font-size: 22px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .xside .wide { grid-column: 1 / -1; }
+    .xk { color: var(--muted); font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px !important; }
+    .flowsvg { width: 100%; height: auto; display: block; }
+    .flowsvg text { font-family: "Leelawadee UI", Tahoma, sans-serif; }
+    .fn { fill: rgba(255,255,255,.035); stroke: rgba(215,241,223,.18); stroke-width: 1.2; transition: stroke .5s, fill .5s; }
+    .fn.peak { stroke: rgba(255,125,115,.6); fill: rgba(255,125,115,.06); }
+    .fn-t { fill: #9db4a8; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+    .fn-v { fill: #edf7f0; font-size: 24px; font-weight: 850; font-variant-numeric: tabular-nums; }
+    .fn-v.big { font-size: 36px; }
+    .fn-s { fill: #9db4a8; font-size: 11px; }
+    .fl { fill: none; stroke-linecap: round; opacity: 0; }
+    .nd { transition: opacity .6s; }
+    .nd.dim { opacity: .26; }
+    #x-cur { transition: transform .55s cubic-bezier(.3,.8,.2,1); }
+    .mbar { position: relative; height: 6px; margin-top: 10px; border-radius: 9px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .mbar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, #d65b57, #ff9b67); }
+    .mbar.purple i { background: linear-gradient(90deg, #6e62a4, #b8a2fb); }
+    .mbar.amber i { background: linear-gradient(90deg, #c88a2f, #ffc56c); }
+    .mbar u { position: absolute; top: -2px; bottom: -2px; left: 66.67%; width: 2px; background: #fff; opacity: .75; }
+
+    /* what-if */
+    .bigpct { font-size: clamp(54px, 7cqw, 96px); font-weight: 850; letter-spacing: -.04em; line-height: 1; color: var(--amber); margin: 12px 0 18px; font-variant-numeric: tabular-nums; }
+    .bigpct small { font-size: .4em; margin-left: 4px; color: var(--muted); }
+    .ticks { display: flex; justify-content: space-between; margin: 10px 4px 0; color: var(--muted); font-size: 11px; }
+    .splitbar { display: flex; height: 22px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.06); margin-top: 20px; }
+    .splitbar span { display: block; height: 100%; }
+    .splitbar .s1 { background: linear-gradient(90deg, #2f6b97, #83b9ff); }
+    .splitbar .s2 { background: linear-gradient(90deg, #c88a2f, #ffc56c); }
+    .splitlab { display: flex; justify-content: space-between; margin: 8px 0 18px; font-size: 12px; color: #c4d7cc; font-variant-numeric: tabular-nums; }
+    #w-mark { transition: none; }
+
+    
+    
+    @media (prefers-reduced-motion: reduce) {
+      .slide.active .rv, .cover-art svg, .sun, .sun:before, h1 .line2, h2 .accent, .string { animation: none !important; }
+      .cover-art svg path[stroke-dasharray], .building-svg path[stroke-dasharray] { animation: none !important; }
+      h1 .line2, h2 .accent { color: var(--green); background: none; -webkit-background-clip: border-box; background-clip: border-box; }
+    }
+    @media print {
+      #ambient, .wipe, .tip, .sun, .xctl, .seg { display: none !important; }
+      * { animation: none !important; }
+      h1 .line2, h2 .accent { color: var(--green) !important; background: none !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; }
+      .explorer { grid-template-columns: 1.35fr .65fr; margin-top: 8px; }
+      .xside .micro { padding: 8px; }
+      .xside .micro b { font-size: 12pt; }
+      .bigpct { font-size: 40pt; margin: 4px 0 8px; }
+      .flowsvg { max-height: 3.6in; }
+    }
+  
+    /* ================= FIT-TO-SCREEN (no scrolling, desktop + mobile) ================= */
+    html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body { overscroll-behavior: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    @media screen {
+      .slide { overflow: hidden; padding: 0; }
+      .slide-inner { position: absolute; left: 0; top: 0; margin: 0; max-width: none; width: 1400px; transform-origin: 0 0;
+        container-type: inline-size; }
+      .slide-inner:not([data-fit]) { visibility: hidden; }
+      .slide-inner.cover { display: grid; }
+    }
+    .slide.trim1 .sublead { display: none; }
+    .slide.trim2 .callout, .slide.trim2 .tiny, .slide.trim2 .cover-foot, .slide.trim2 .metric .note, .slide.trim2 .sublead { display: none; }
+
+    /* layout-width classes (set by the fitter) replace viewport media queries */
+    .slide-inner.w9.cover { grid-template-columns: 1fr; gap: 5px; align-content: center; }
+    .w9 .cover-art { max-width: 600px; margin: 0 auto; }
+    .w9 .cover h1, .slide-inner.w9.cover h1 { font-size: clamp(42px, 11cqw, 76px); }
+    .w9 .cover-foot { margin-top: 22px; }
+    .w9 .title-row { display: block; }
+    .w9 .title-row .sublead { margin-top: 12px; }
+    .w9 .grid.four { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .w9 .building-layout, .w9 .roof-wrap { grid-template-columns: 1fr; }
+    .w9 .building-svg { min-height: 0; }
+    .w9 .flow { grid-template-columns: repeat(5, minmax(0,1fr)); }
+    .w9 .battery-rack { grid-template-columns: repeat(5, minmax(0,1fr)); }
+    .w9 .scenario-row { grid-template-columns: 100px 1fr 90px; }
+    .w9 .scenario-save { display: none; }
+    .w9 .explorer { grid-template-columns: 1fr; }
+    .w9 .sun { width: 64px; height: 64px; right: 6%; }
+    .w5 .grid.two, .w5 .grid.three { grid-template-columns: 1fr; }
+    .w5 .grid.four { gap: 9px; }
+    .w5 .metric { min-height: 100px; padding: 16px; }
+    .w5 .metric .value { font-size: 31px; }
+    .w5 .metric .label { font-size: 11px; }
+    .w5 .ladder { grid-template-columns: 1fr; }
+    .w5 .ladder .arrow { transform: rotate(90deg); text-align: center; }
+    .w5 .scenario-row { grid-template-columns: 82px 1fr 78px; gap: 8px; }
+    .w5 .scenario-name { font-size: 10px; }
+    .w5 .scenario-money { font-size: 11px; }
+    .w5 .module-grid { gap: 2px; }
+    .w5 .xctl { flex-wrap: wrap; }
+    .flowsvg { max-height: 330px; margin: 0 auto; }
+    @media (max-height: 480px) {
+      .hint, .rail { display: none; }
+      .controls { bottom: 4px; padding: 3px; gap: 4px; }
+      .ctrl { width: 30px; height: 30px; }
+      .counter { min-width: 56px; font-size: 11px; }
+    }
+    @media (max-width: 700px) {
+      .rail { display: none; }
+      .hint { display: none; }
+      .controls { bottom: 10px; }
+      .ctrl { width: 36px; height: 36px; }
+      .counter { min-width: 66px; }
+    }
+    @media print {
+      .slide-inner { position: static !important; width: 100% !important; transform: none !important; visibility: visible !important; }
+      .slide.trim1 .sublead, .slide.trim2 .callout, .slide.trim2 .tiny, .slide.trim2 .cover-foot { display: revert !important; }
+      .slide-inner.cover { display: grid !important; grid-template-columns: 1.02fr .98fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ambient" aria-hidden="true"></canvas>
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
+  <div class="tip" id="tip" role="status"></div>
+  <div class="progress" id="progress"></div>
+  <main class="deck" id="deck" aria-label="สไลด์นำเสนอ Smart Green Energy">
+    <section class="slide active" data-title="หน้าปก">
+      <div class="slide-inner cover">
+        <div>
+          <div class="eyebrow">SMART CAMPUS · CHONBURI</div>
+          <h1>
+            <span>SMART</span>
+            <span class="line2">GREEN ENERGY</span>
+            <span class="line3">BEMS + SOLAR PV + BATTERY</span>
+          </h1>
+          <p class="lead">เปลี่ยนอาคารเรียน 4 ชั้น ให้เป็นระบบพลังงานอัจฉริยะ<br>ลดค่าไฟ • ตัดยอดพีก • ตอบสนอง Demand Response</p>
+          <div class="cover-meta">
+            <span class="tag"><i class="dot"></i> โหลดอ้างอิง 1,423 kWh/วัน</span>
+            <span class="tag"><i class="dot" style="background:var(--amber)"></i> Solar rooftop 120 kWp</span>
+            <span class="tag"><i class="dot" style="background:var(--blue)"></i> BESS 384 kWh</span>
+          </div>
+          <div class="cover-foot"><i></i><span>CONCEPT DESIGN · วิเคราะห์จากข้อมูล Excel และแบบจำลอง MATLAB</span></div>
+        </div>
+        <div class="cover-art">
+          <div class="sun" aria-hidden="true"></div>
+          <div class="cover-orbit"></div>
+          <svg viewBox="0 0 760 590" role="img" aria-label="ภาพจำลองอาคารสี่ชั้นติดตั้งแผงโซลาร์และระบบกักเก็บพลังงาน">
+            <defs>
+              <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#28574a"/><stop offset="1" stop-color="#12372d"/>
+              </linearGradient>
+              <linearGradient id="roof" x1="0" x2="1">
+                <stop stop-color="#2b7761"/><stop offset="1" stop-color="#1b4c3e"/>
+              </linearGradient>
+              <linearGradient id="side" x1="0" x2="0" y1="0" y2="1">
+                <stop stop-color="#17392e"/><stop offset="1" stop-color="#0d241d"/>
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <ellipse cx="385" cy="516" rx="310" ry="37" fill="#020b08" opacity=".62"/>
+            <path d="M75 444 L380 285 L690 434 L385 568 Z" fill="#0e2820" stroke="#28503f" stroke-width="2"/>
+            <path d="M129 247 L438 87 L658 194 L348 356 Z" fill="url(#roof)" stroke="#72e2aa" stroke-opacity=".45" stroke-width="2"/>
+            <path d="M348 356 L658 194 L658 412 L348 574 Z" fill="url(#side)" stroke="#396b55" stroke-width="2"/>
+            <path d="M129 247 L348 356 L348 574 L129 464 Z" fill="url(#glass)" stroke="#4c9877" stroke-width="2"/>
+            <!-- rooftop array -->
+            <g transform="translate(0 0)" stroke="#a8e7ff" stroke-opacity=".56" stroke-width="1">
+              <path d="M173 243 L416 116 L591 199 L347 327 Z" fill="#174865"/>
+              <path d="M185 249 L429 122 M207 261 L451 133 M229 272 L473 144 M251 283 L495 155 M273 294 L517 166 M295 306 L539 178 M317 317 L561 189" fill="none"/>
+              <path d="M194 232 L368 316 M218 220 L392 304 M242 207 L416 291 M266 195 L440 279 M290 183 L464 267 M314 171 L488 255 M338 159 L512 243 M362 147 L536 231 M386 135 L560 219" fill="none"/>
+            </g>
+            <!-- floor slabs -->
+            <g fill="none" stroke="#86d8ad" stroke-opacity=".47" stroke-width="2">
+              <path d="M129 301 L348 410 L658 247"/><path d="M129 354 L348 464 L658 301"/>
+              <path d="M129 408 L348 518 L658 355"/>
+              <path d="M348 356 L348 574"/>
+              <path d="M426 316 L426 532 M504 276 L504 492 M582 235 L582 451"/>
+              <path d="M189 278 L189 494 M249 308 L249 524 M309 337 L309 554"/>
+            </g>
+            <!-- glowing windows -->
+            <g fill="#e1ba70" opacity=".9" filter="url(#glow)">
+              <path d="M150 282 l24 12 v32 l-24-12z"/><path d="M205 310 l24 12 v32 l-24-12z"/>
+              <path d="M265 340 l24 12 v32 l-24-12z"/><path d="M150 338 l24 12 v32 l-24-12z"/>
+              <path d="M205 366 l24 12 v32 l-24-12z"/><path d="M265 396 l24 12 v32 l-24-12z"/>
+              <path d="M379 350 l25-13 v33 l-25 13z"/><path d="M455 310 l25-13 v33 l-25 13z"/>
+              <path d="M533 269 l25-13 v33 l-25 13z"/><path d="M379 405 l25-13 v33 l-25 13z"/>
+              <path d="M455 365 l25-13 v33 l-25 13z"/><path d="M533 324 l25-13 v33 l-25 13z"/>
+            </g>
+            <!-- BESS container -->
+            <g>
+              <path d="M544 414 l73-38 48 23-74 39z" fill="#2c5e91"/>
+              <path d="M544 414 v54 l47 24 v-54z" fill="#173a62" stroke="#74aef0"/>
+              <path d="M591 438 l74-39 v54 l-74 39z" fill="#214a75" stroke="#74aef0"/>
+              <path d="M558 426 v36 M571 433 v36 M584 440 v36 M603 444 v36 M617 437 v36 M631 429 v36 M645 421 v36" stroke="#a8d1ff" stroke-width="2" opacity=".75"/>
+              <circle cx="602" cy="490" r="5" fill="#63e3a1" filter="url(#glow)"/>
+            </g>
+            <!-- power path -->
+            <path d="M470 213 C558 203 610 280 618 373" fill="none" stroke="#63e3a1" stroke-width="3" stroke-dasharray="7 8" filter="url(#glow)"/>
+            <circle cx="472" cy="213" r="5" fill="#ffc56c"/><circle cx="618" cy="373" r="5" fill="#63e3a1"/>
+            <g font-family="Tahoma,sans-serif" font-size="13" font-weight="700">
+              <text x="88" y="185" fill="#bff8d8">ROOFTOP SOLAR</text>
+              <text x="547" y="520" fill="#a9cfff">BATTERY STORAGE</text>
+              <text x="84" y="493" fill="#85a999">4-STOREY CAMPUS</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="สรุปโครงการ">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">01 · EXECUTIVE BRIEF</div><h2>หนึ่งอาคาร — สี่คันโยก<br><span class="accent">ลดทั้งพลังงานและพีก</span></h2></div>
+          <p class="sublead">ตัวเลขจากโหลดรายชั่วโมง 24 จุดใน Excel และผลแก้ปัญหา LP ใน MATLAB<br>เปรียบเทียบภายใต้วันตัวแทนเดียวกัน</p>
+        </div>
+        <div class="grid four">
+          <div class="metric"><span class="value">1,423</span><span class="label">พลังงานอาคาร</span><span class="note">kWh / วัน · 24 ชั่วโมง</span></div>
+          <div class="metric"><span class="value amber">120 <small style="font-size:.48em">kW</small></span><span class="label">Peak เดิม</span><span class="note">ช่วงโหลดสูงสุด 11:00–12:00 และ 14:00–15:00</span></div>
+          <div class="metric"><span class="value">120 <small style="font-size:.48em">kWp</small></span><span class="label">PV ตามพื้นที่หลังคา</span><span class="note">600 m² ÷ 5 m²/kWp</span></div>
+          <div class="metric"><span class="value blue">384 <small style="font-size:.48em">kWh</small></span><span class="label">BESS ที่เลือก</span><span class="note">75 โมดูล · PCS 40 kW</span></div>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <article class="card pad tradeoff-card">
+            <div class="eyebrow">BEST MODELED BILL</div>
+            <h3 style="font-size:28px;margin-top:12px">104.0 <span class="muted" style="font-size:15px">พันบาท / เดือน</span></h3>
+            <p style="margin-bottom:13px">กรณี PV + BESS + BEMS/DR ลดค่าใช้จ่ายสุทธิ <strong class="accent">92.3 พันบาท/เดือน</strong> หรือประมาณ <strong class="accent">47.0%</strong> จากฐาน</p>
+            <div class="pillrow"><span class="pill">ค่าไฟพลังงาน</span><span class="pill">Demand charge</span><span class="pill">DR credit</span><span class="pill">ตารางเดินแบตเตอรี่</span></div>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">DESIGN DECISION</div>
+            <h3 style="font-size:22px;margin-top:12px">จัดลำดับให้ “PV ก่อน — BESS ตาม — DR เมื่อมีคำขอ”</h3>
+            <ul class="list">
+              <li>PV ลดพลังงานซื้อจากกริดในช่วงกลางวันและลด On-Peak peak เหลือประมาณ 82 kW</li>
+              <li>BESS ช่วยตัดยอด On-Peak ลงได้ถึงประมาณ 42 kW ในกรณี PV+BESS</li>
+              <li>DR ต้องลดโหลด 20% ใน 13:00–16:00; ตาราง LP จึงรักษาคำขอและ SOC พร้อมกัน</li>
+            </ul>
+          </article>
+        </div>
+        <p class="small" style="margin-top:17px">หมายเหตุ: ค่าไฟรายเดือนเป็นการคูณวันตัวแทน × 30 วัน ไม่ใช่ใบแจ้งหนี้จริง และยังไม่รวม O&M, degradation, financing หรือทุนระบบ BEMS/HVAC</p>
+      </div>
+    </section>
+
+    <section class="slide" data-title="จำลองอาคาร">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">02 · BUILDING MODEL</div><h2>จำลองอาคารเรียน <span class="accent">4 ชั้น</span></h2></div>
+          <p class="sublead">แบบภาพสื่อแนวคิดเพื่ออธิบายจุดติดตั้งและทิศทางพลังงาน<br>รายละเอียดรูปทรงและการแบ่งชั้นเป็นภาพประกอบ ไม่ใช่แบบก่อสร้างจริง</p>
+        </div>
+        <div class="building-layout">
+          <article class="card pad" style="padding:14px">
+            <svg class="building-svg" viewBox="0 0 900 520" role="img" aria-label="ภาพตัดอาคารสี่ชั้นพร้อม rooftop PV และห้องแบตเตอรี่">
+              <defs>
+                <linearGradient id="bldg-front" x1="0" x2="1"><stop stop-color="#183a2e"/><stop offset="1" stop-color="#244b3a"/></linearGradient>
+                <linearGradient id="bldg-side" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#173528"/><stop offset="1" stop-color="#0e241b"/></linearGradient>
+                <pattern id="panel-lines" width="25" height="14" patternUnits="userSpaceOnUse"><rect width="25" height="14" fill="#174761"/><path d="M12.5 0v14M0 7h25" stroke="#79b8d5" stroke-opacity=".55" stroke-width=".8"/></pattern>
+              </defs>
+              <ellipse cx="434" cy="465" rx="340" ry="26" fill="#020a07" opacity=".6"/>
+              <polygon points="180,124 514,45 740,135 404,225" fill="#1e5c48" stroke="#62d99b" stroke-width="2"/>
+              <polygon points="210,125 512,61 700,136 399,201" fill="url(#panel-lines)" stroke="#a2e4ff" stroke-width="1.5"/>
+              <polygon points="180,124 404,225 404,457 180,356" fill="url(#bldg-front)" stroke="#4d9b74" stroke-width="2"/>
+              <polygon points="404,225 740,135 740,367 404,457" fill="url(#bldg-side)" stroke="#47785e" stroke-width="2"/>
+              <g fill="none" stroke="#77d6a5" stroke-opacity=".5" stroke-width="2">
+                <path d="M180 182l224 101 336-90M180 240l224 101 336-90M180 298l224 101 336-90"/>
+                <path d="M236 149v233M292 174v234M348 199v233"/>
+                <path d="M471 207v233M538 189v232M605 171v232M672 153v232"/>
+              </g>
+              <g fill="#f3c477" opacity=".88">
+                <path d="M199 150l22 10v35l-22-10z"/><path d="M248 172l22 10v35l-22-10z"/><path d="M302 197l22 10v35l-22-10z"/>
+                <path d="M199 210l22 10v35l-22-10z"/><path d="M248 232l22 10v35l-22-10z"/><path d="M302 257l22 10v35l-22-10z"/>
+                <path d="M199 270l22 10v35l-22-10z"/><path d="M248 292l22 10v35l-22-10z"/><path d="M302 317l22 10v35l-22-10z"/>
+                <path d="M429 238l22-6v37l-22 6z"/><path d="M492 221l22-6v37l-22 6z"/><path d="M558 203l22-6v37l-22 6z"/>
+                <path d="M429 296l22-6v37l-22 6z"/><path d="M492 279l22-6v37l-22 6z"/><path d="M558 261l22-6v37l-22 6z"/>
+                <path d="M429 354l22-6v37l-22 6z"/><path d="M492 337l22-6v37l-22 6z"/><path d="M558 319l22-6v37l-22 6z"/>
+              </g>
+              <g fill="#bdebd1" font-family="Tahoma,sans-serif" font-weight="700">
+                <text x="95" y="175" font-size="15">ROOF · SOLAR PV</text>
+                <text x="89" y="250" font-size="13">ชั้น 4</text><text x="89" y="308" font-size="13">ชั้น 3</text>
+                <text x="89" y="366" font-size="13">ชั้น 2</text><text x="89" y="424" font-size="13">ชั้น 1</text>
+              </g>
+              <g stroke="#63e3a1" stroke-width="2" fill="none">
+                <path d="M132 177h47"/><path d="M136 250h40"/><path d="M136 308h40"/><path d="M136 366h40"/><path d="M136 424h40"/>
+              </g>
+              <g>
+                <rect x="623" y="389" width="93" height="48" rx="5" fill="#214b74" stroke="#9bc5ff"/>
+                <path d="M637 398v29m14-29v29m14-29v29m14-29v29m14-29v29" stroke="#9bc5ff" stroke-width="2"/>
+                <text x="625" y="453" fill="#a9cfff" font-size="11" font-family="Tahoma">BESS ROOM</text>
+              </g>
+              <path d="M558 129 C660 143 668 259 668 382" fill="none" stroke="#63e3a1" stroke-width="3" stroke-dasharray="7 7"/>
+              <circle cx="558" cy="129" r="6" fill="#ffc56c"/><circle cx="668" cy="382" r="6" fill="#63e3a1"/>
+              <g fill="#a4bdaf" font-size="11" font-family="Tahoma">
+                <text x="742" y="177">Solar DC</text><text x="727" y="199">→ inverter</text>
+                <text x="730" y="419">BESS / PCS</text>
+              </g>
+            </svg>
+          </article>
+          <div class="grid" style="align-content:start">
+            <article class="card pad">
+              <div class="eyebrow">BASELINE PROFILE</div>
+              <div class="statline"><span class="num">4 ชั้น</span><span class="desc">อาคารเรียนในมหาวิทยาลัย จ.ชลบุรี</span></div>
+              <div class="statline"><span class="num">1,423</span><span class="desc">kWh/วัน จาก load profile 24 ชั่วโมง</span></div>
+              <div class="statline"><span class="num amber">120 kW</span><span class="desc">Peak demand ก่อนติดตั้งระบบ</span></div>
+              <div class="statline"><span class="num">0.494</span><span class="desc">Load factor = โหลดเฉลี่ย ÷ Peak</span></div>
+            </article>
+            <div class="callout"><strong>อ่านภาพให้ถูก:</strong> จำนวนชั้น/จังหวัด/เป้าหมายโหลดมาจากโจทย์ ส่วนรูปทรงอาคาร ตำแหน่งห้องอุปกรณ์ และสัดส่วนภาพเป็น illustration สำหรับนำเสนอ ไม่ใช่ survey</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="พื้นที่และขนาดหลังคา">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">03 · ROOFTOP AREA</div><h2>หลังคา usable <span class="accent">600 m²</span><br>รองรับแนวคิด PV <span class="amber">120 kWp</span></h2></div>
+          <p class="sublead">600 m² และอัตรา 5 m²/kWp มาจากโจทย์ ส่วนขนาด 30 × 20 m เป็นเพียงตัวอย่างรูปทรงที่คูณแล้วได้ 600 m²</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad" style="padding:17px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+              <div><div class="eyebrow">ROOF PLAN · CONCEPT</div><h3 style="margin-top:10px">ผังมองจากด้านบน</h3></div>
+              <span class="tag"><i class="dot" style="background:var(--blue)"></i> 30 × 20 m*</span>
+            </div>
+            <svg class="roof-svg" viewBox="0 0 700 390" role="img" aria-label="ผังหลังคาแนวคิดขนาดสมมติ 30 เมตรคูณ 20 เมตร">
+              <defs>
+                <pattern id="roof-grid" width="19" height="19" patternUnits="userSpaceOnUse">
+                  <rect x="1" y="1" width="16" height="16" rx="2" fill="#174c68" stroke="#78b8d7" stroke-width=".8"/>
+                  <path d="M9 1v16" stroke="#b1e6fa" stroke-opacity=".25" stroke-width=".7"/>
+                </pattern>
+                <pattern id="walkway" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                  <rect width="8" height="8" fill="#4a3b25"/><rect width="2" height="8" fill="#ffc56c" opacity=".55"/>
+                </pattern>
+              </defs>
+              <rect x="88" y="47" width="525" height="286" rx="17" fill="#132a21" stroke="#76d4a0" stroke-width="2"/>
+              <rect x="104" y="62" width="484" height="250" rx="9" fill="url(#roof-grid)"/>
+              <rect x="104" y="316" width="484" height="8" fill="url(#walkway)" opacity=".8"/>
+              <rect x="588" y="62" width="8" height="262" fill="url(#walkway)" opacity=".8"/>
+              <rect x="282" y="155" width="72" height="47" rx="5" fill="#746a52" stroke="#d6c99c" stroke-dasharray="4 3"/>
+              <text x="318" y="174" text-anchor="middle" fill="#fff1c6" font-size="11" font-family="Tahoma">CORE /</text>
+              <text x="318" y="189" text-anchor="middle" fill="#fff1c6" font-size="10" font-family="Tahoma">SHAFTS*</text>
+              <path d="M88 353v13M613 353v13M88 360h525" stroke="#c1d4c8" stroke-width="1.5"/>
+              <path d="M75 47h-13M75 333h-13M68 47v286" stroke="#c1d4c8" stroke-width="1.5"/>
+              <text x="350" y="382" text-anchor="middle" fill="#d0dfd5" font-size="13" font-family="Tahoma">30 m (สมมติ)</text>
+              <text x="28" y="195" text-anchor="middle" fill="#d0dfd5" font-size="13" font-family="Tahoma" transform="rotate(-90 28 195)">20 m (สมมติ)</text>
+              <text x="453" y="86" fill="#bcebd1" font-size="11" font-family="Tahoma">PV FIELD</text>
+              <text x="420" y="307" fill="#ffe0a6" font-size="10" font-family="Tahoma">แนวทางเดิน / setback*</text>
+            </svg>
+            <div class="small muted">* ขนาด footprint สมมติให้สอดคล้องกับพื้นที่ 600 m² — ภาพไม่ใช่แปลนสำรวจหรือผังแผงตามมาตราส่วน</div>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">ROOF AREA → PV CAPACITY</div>
+            <h3 style="margin-top:10px">พื้นที่ติดตั้งคือข้อจำกัดหลัก</h3>
+            <div class="metric" style="margin:15px 0;min-height:auto"><span class="value">120 <small style="font-size:.52em">kWp</small></span><span class="label">กำลัง PV สูงสุดตามพื้นที่สมมติ</span><span class="note">600 m² ÷ 5 m²/kWp</span></div>
+            <div class="grid two">
+              <div class="micro"><b>600 m²</b><span>usable roof area ใน workbook</span></div>
+              <div class="micro"><b>5 m²/kWp</b><span>space allowance โดยประมาณ</span></div>
+            </div>
+            <div class="callout" style="margin-top:15px"><strong>สำคัญ:</strong> พื้นที่ usable ไม่ได้บอกว่าจัดแผงได้เต็มทุกตารางเมตร ต้องหักทางเดิน/ระยะร่น/ช่อง service/เงาบัง หลัง survey จริง</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="ขนาดแผงและพื้นที่ใช้งาน">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">04 · MODULE & LAYOUT DETAIL</div><h2>คำนวณจำนวนแผง<br>พร้อม <span class="blue">ระบุสมมติฐานให้ชัด</span></h2></div>
+          <p class="sublead">แผง 545 Wp และขนาดทางกายภาพเป็นโมดูลอ้างอิงเพื่อทำภาพเท่านั้น — ไม่ได้ระบุรุ่นยี่ห้อจากโจทย์</p>
+        </div>
+        <div class="grid three">
+          <article class="card pad">
+            <div class="eyebrow">MODULE COUNT · SCHEMATIC</div>
+            <h3 style="margin-top:10px">ประมาณ 220 แผง ≈ 119.9 kWp</h3>
+            <div class="module-grid" id="module-grid" aria-label="แผนภาพสัญลักษณ์แผง 220 แผง" style="margin:22px 0"></div>
+            <div class="small muted">แต่ละช่องแทน 1 โมดูล — ภาพกริดเป็นสัญลักษณ์ ไม่ใช่การจัดแถวตามระยะจริง/เงาบัง/ทางเดิน</div>
+            <div class="divider"></div>
+            <div class="grid three">
+              <div class="micro"><b>545 Wp</b><span>สมมติกำลัง/แผง</span></div>
+              <div class="micro"><b>220 แผง</b><span>ปัดจำนวนเต็ม</span></div>
+              <div class="micro"><b>119.9 kWp</b><span>DC nameplate โดยประมาณ</span></div>
+            </div>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">MODULE DIMENSIONS · ASSUMED</div>
+            <h3 style="margin-top:10px">ขนาดและพื้นที่แผง</h3>
+            <svg viewBox="0 0 580 220" role="img" aria-label="แผงโซลาร์ตัวอย่างขนาด 2.278 คูณ 1.134 เมตร" style="width:100%;height:auto">
+              <defs><linearGradient id="module-fill" x1="0" x2="1"><stop stop-color="#1a5771"/><stop offset="1" stop-color="#2b82a2"/></linearGradient></defs>
+              <rect x="168" y="35" width="237" height="118" rx="8" fill="url(#module-fill)" stroke="#a9e3f7" stroke-width="2"/>
+              <path d="M247 35v118M326 35v118M168 74h237M168 113h237" stroke="#a9e3f7" stroke-opacity=".5"/>
+              <path d="M168 174v15M405 174v15M168 183h237" stroke="#d3e2da" stroke-width="1.5"/>
+              <text x="286" y="207" text-anchor="middle" fill="#d3e2da" font-size="14" font-family="Tahoma">2.278 m</text>
+              <path d="M146 35h-15M146 153h-15M138 35v118" stroke="#d3e2da" stroke-width="1.5"/>
+              <text x="111" y="99" text-anchor="middle" fill="#d3e2da" font-size="14" font-family="Tahoma" transform="rotate(-90 111 99)">1.134 m</text>
+              <text x="286" y="26" text-anchor="middle" fill="#bdebd1" font-size="11" font-family="Tahoma">FRONT VIEW · NOT TO SCALE</text>
+            </svg>
+            <div class="roof-metric">
+              <div class="micro"><b>2.278 × 1.134 m</b><span>ขนาดสมมติต่อแผง</span></div>
+              <div class="micro"><b>2.583 m²</b><span>พื้นที่หน้าแผง</span></div>
+              <div class="micro"><b>~28 kg</b><span>น้ำหนัก/แผง (สมมติ)</span></div>
+              <div class="micro"><b>~6.16 t</b><span>น้ำหนักแผงรวม*</span></div>
+            </div>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">AREA BUDGET · CHECK</div>
+            <h3 style="margin-top:10px">ตรวจพื้นที่ก่อนออกแบบ</h3>
+            <div class="statline"><span class="num">600.0 m²</span><span class="desc">usable roof area</span></div>
+            <div class="statline"><span class="num">568.3 m²</span><span class="desc">220 × 2.583 m²</span></div>
+            <div class="statline"><span class="num amber">31.7 m²</span><span class="desc">ส่วนต่างเชิงคณิตศาสตร์</span></div>
+            <div class="area-bar" aria-label="แผงมี footprint ร้อยละ 94.7 ส่วนต่าง 5.3 เปอร์เซ็นต์"><span></span><span></span></div>
+            <p class="tiny" style="margin:10px 0 0">*พื้นที่ที่เหลือ 5.3% อาจไม่พอสำหรับทางเดิน/ระยะร่น และน้ำหนักรวมไม่รวมรางหรือ ballast ต้องตรวจหน้างานและโครงสร้างก่อนติดตั้ง</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="พลังงานและแสงอาทิตย์">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">05 · ENERGY PROFILE</div><h2>แดดมาเมื่อโหลดสูง —<br><span class="accent">แต่ยังไม่แทนกริดทั้งวัน</span></h2></div>
+          <p class="sublead">โหลดและ irradiance จาก 24 ชั่วโมงในชีต ขนาด PV อ้างอิง 120 kWp และ PR 0.80 เป็นสมมติฐาน</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad">
+            <div class="eyebrow">LOAD × PV OUTPUT</div>
+            <h3 style="margin-top:10px">กำลังรายชั่วโมง (kW)</h3>
+            <svg class="chart" id="profile-chart" viewBox="0 0 780 330" role="img" aria-label="กราฟโหลดอาคาร กำลัง PV คาดการณ์ และ import จากกริด 24 ชั่วโมง"></svg>
+            <div class="legend"><span><i class="lg-amber"></i>โหลดอาคาร</span><span><i class="lg-green"></i>PV ตาม PR 0.80</span><span><i class="lg-coral"></i>Grid import หลัง PV (ก่อน BESS)</span></div>
+          </article>
+          <div class="grid">
+            <article class="card pad">
+              <div class="eyebrow">DAILY ENERGY BALANCE</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:16px">
+                <div class="metric" style="min-height:auto"><span class="value">1,423</span><span class="label">อาคารใช้ไฟ / วัน</span></div>
+                <div class="metric" style="min-height:auto"><span class="value accent">461.8</span><span class="label">PV ผลิต / วัน (ประมาณ)</span></div>
+              </div>
+              <div class="divider"></div>
+              <div class="statline"><span class="num">4.81 h</span><span class="desc">PSH จากผลรวม irradiance รายชั่วโมง</span></div>
+              <div class="statline"><span class="num">32.4%</span><span class="desc">PV energy ÷ daily building energy</span></div>
+              <div class="statline"><span class="num">77.9%</span><span class="desc">สัดส่วนโหลด On-Peak ต่อพลังงานรายวัน</span></div>
+            </article>
+            <div class="callout green"><strong>ความหมายของ 32.4%:</strong> เป็นสัดส่วนพลังงาน PV คาดการณ์เทียบโหลดรวม ไม่ใช่การรับประกันลดค่าไฟเท่ากันทุกวัน และไม่รวมผลหันแผง เงาบัง อุณหภูมิ/ฝุ่น หรือ downtime</div>
+            <div class="callout"><strong>ข้อสังเกต:</strong> ค่า PSH ในโจทย์ 4.8 h/day ต่างจากการรวมข้อมูลรังสีในตารางที่ 4.81 h/day เพียง 0.01 ชั่วโมง สอดคล้องกับการปัดเศษ</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="สถาปัตยกรรม BEMS">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">06 · CONTROL ARCHITECTURE</div><h2>ระบบไม่ได้มีแค่แผง —<br><span class="accent">BEMS คือสมองจัดการพลังงาน</span></h2></div>
+          <p class="sublead">โครงสร้างเชิงแนวคิดที่แปลงเซนเซอร์และมิเตอร์ให้เป็นการสั่งงาน PV, BESS และ HVAC</p>
+        </div>
+        <div class="card pad">
+          <div class="flow">
+            <div class="flow-node"><div class="flow-icon">◉</div><b>วัดและตรวจจับ</b><small>Smart meter · irradiance<br>อุณหภูมิ · สถานะอุปกรณ์</small></div>
+            <div class="flow-node"><div class="flow-icon">▤</div><b>เก็บข้อมูล</b><small>15-min data<br>baseline · tariff · alarms</small></div>
+            <div class="flow-node"><div class="flow-icon">⌘</div><b>BEMS / LP</b><small>คาดการณ์โหลด/แดด<br>จัดตาราง dispatch</small></div>
+            <div class="flow-node"><div class="flow-icon">↗</div><b>ควบคุมระบบ</b><small>PCS / inverter<br>HVAC setpoint</small></div>
+            <div class="flow-node"><div class="flow-icon">▥</div><b>ทวนผลและ DR</b><small>peak · SOC · comfort<br>event verification</small></div>
+          </div>
+          <div class="divider"></div>
+          <div class="grid three">
+            <div class="micro"><b class="blue">PV + Inverter</b><span>รับ DC จาก rooftop array; แปลงเป็น AC; กำหนด limit และ anti-islanding ตามแบบวิศวกรรม</span></div>
+            <div class="micro"><b class="purple">BESS + PCS</b><span>ควบคุม charge/discharge; รักษา SOC, power limit และ interlock ความปลอดภัย</span></div>
+            <div class="micro"><b class="amber">HVAC + DR</b><span>ปรับ setpoint ชั่วคราวเมื่อมี event; ต้องรักษาขอบเขตความสบายและยืนยัน baseline</span></div>
+          </div>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <article class="card pad">
+            <div class="eyebrow">COMMUNICATION LAYER</div>
+            <h3 style="margin-top:9px">แนวทางโปรโตคอล (ต้องยืนยันอุปกรณ์จริง)</h3>
+            <div class="pillrow"><span class="pill">Modbus TCP/RTU</span><span class="pill">BACnet/IP</span><span class="pill">Ethernet</span><span class="pill">Gateway / historian</span></div>
+            <p class="small" style="margin-bottom:0">เลือกตามความสามารถของมิเตอร์, inverter, PCS และ BMS; แยก OT network, permission และ audit log ตามนโยบายหน่วยงาน</p>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">METERING REQUIREMENT</div>
+            <h3 style="margin-top:9px">รายชั่วโมงเหมาะกับ “ภาพรวม” — ไม่พอสำหรับพิสูจน์พีก 15 นาที</h3>
+            <p class="small" style="margin-bottom:0">เพิ่ม smart meter ที่บันทึกอย่างน้อย 15-minute interval, timestamp, TOU, import/export, PV, BESS kW/SOC และ event baseline เพื่อประเมิน demand charge / DR ได้ใกล้การเรียกเก็บเงินจริง</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="ออกแบบแบตเตอรี่">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">07 · BATTERY SIZING</div><h2>เลือก BESS จาก <span class="blue">โหลดวิกฤต</span><br>และ <span class="amber">Peak shaving</span></h2></div>
+          <p class="sublead">DoD 90%, efficiency รวม 93.57%, module 51.2 V / 100 Ah เป็นค่าจากโจทย์และการแยกประสิทธิภาพตามสมมติฐานแบบจำลอง</p>
+        </div>
+        <div class="ladder">
+          <div class="step"><div class="eyebrow">CRITICAL LOAD</div><b class="blue">10 kW × 24 h</b><p class="small" style="margin:7px 0 0">พลังงานส่งมอบ 240 kWh<br>แบต nominal ที่ต้องการ <strong>284.99 kWh</strong></p></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="eyebrow">PEAK SHAVING</div><b class="amber">120 → 80 kW</b><p class="small" style="margin:7px 0 0">กำลัง discharge สูงสุด 40 kW<br>พลังงานที่ตัดเกินเป้า 281 kWh/วัน<br>แบต nominal ที่ต้องการ <strong>333.68 kWh</strong></p></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="eyebrow">SELECTED CONFIG</div><b class="accent">384 kWh</b><p class="small" style="margin:7px 0 0">ปัดขึ้นตามสตริงโมดูล<br>PCS กำหนด <strong>40 kW</strong></p></div>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <article class="card pad">
+            <div class="eyebrow">RACK CONCEPT · ELECTRICAL SERIES/PARALLEL</div>
+            <h3 style="margin-top:9px">5 สตริงขนาน × 15 โมดูลอนุกรม</h3>
+            <div class="battery-rack" id="battery-rack" style="margin:18px 0 12px"></div>
+            <div class="grid four">
+              <div class="micro"><b>15S</b><span>51.2 V × 15 = 768 Vdc</span></div>
+              <div class="micro"><b>76.8</b><span>kWh ต่อ string</span></div>
+              <div class="micro"><b>5P</b><span>สตริงขนาน</span></div>
+              <div class="micro"><b>75</b><span>โมดูลรวม</span></div>
+            </div>
+          </article>
+          <div class="grid">
+            <article class="card pad">
+              <div class="eyebrow">USABLE ENERGY CHECK</div>
+              <div class="statline"><span class="num">384 kWh</span><span class="desc">พลังงาน nominal ติดตั้ง</span></div>
+              <div class="statline"><span class="num">345.6 kWh</span><span class="desc">พลังงาน DC ใช้ได้ที่ DoD 90%</span></div>
+              <div class="statline"><span class="num accent">~323 kWh</span><span class="desc">ส่งมอบหลัง efficiency รวม 93.57% (ประมาณ)</span></div>
+              <div class="statline"><span class="num">40 kW</span><span class="desc">PCS ≈ 0.10C ที่แบต 384 kWh</span></div>
+            </article>
+            <div class="callout red"><strong>ข้อควรออกแบบ:</strong> ภาพสตริงเป็นการอธิบายไฟฟ้า ไม่ใช่ cabinet/rack dimensions หรือการรับรองเซลล์จริง ต้องตรวจ BMS, fuse, contactor, protection, HVAC/fire strategy, short-circuit, inverter compatibility และน้ำหนักพื้น</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="LP และ DR">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">08 · OPTIMIZATION + DEMAND RESPONSE</div><h2>LP จัดตารางพลังงาน<br><span class="accent">DR ลดจริง 20% ทุกชั่วโมง</span></h2></div>
+          <p class="sublead">สมการ balance รายชั่วโมงพร้อมข้อจำกัด SOC, กำลัง PCS, PV availability, Peak cap และ HVAC flexibility</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad">
+            <div class="eyebrow">LP DECISION LOGIC</div>
+            <h3 style="margin-top:10px">ตัวแปรที่ solver เลือกในแต่ละชั่วโมง</h3>
+            <div class="pillrow"><span class="pill">Grid import</span><span class="pill">PV used</span><span class="pill">BESS charge</span><span class="pill">BESS discharge</span><span class="pill">SOC</span><span class="pill">HVAC reduction</span><span class="pill">On-Peak max</span></div>
+            <div class="divider"></div>
+            <div class="micro mono" style="font-size:12px;line-height:1.9;color:#d4e4da">
+              grid + PV + discharge + HVAC reduction<br>
+              &nbsp;&nbsp;− charge = building load<br>
+              SOC<sub>t</sub> = SOC<sub>t−1</sub> + η<sub>c</sub> charge − discharge / η<sub>d</sub><br>
+              DR hours: discharge + HVAC reduction = 0.20 × baseline
+            </div>
+            <p class="small" style="margin:12px 0 0">Objective: ค่าไฟพลังงานรายเดือน + Demand charge On-Peak − DR credit ภายใต้วันตัวแทนที่กำหนด</p>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">DR EVENT · 13:00–16:00</div>
+            <h3 style="margin-top:10px">ลดตามคำขอทุกชั่วโมง</h3>
+            <svg class="chart" id="dr-chart" viewBox="0 0 660 270" role="img" aria-label="กราฟแท่งแยกพลังงานลดจาก BESS และ HVAC ในช่วง DR"></svg>
+            <div class="legend"><span><i class="lg-blue"></i>BESS discharge</span><span><i class="lg-amber"></i>HVAC curtailment</span><span><i class="lg-green"></i>คำขอ 20%</span></div>
+            <div class="grid three" style="margin-top:16px">
+              <div class="micro"><b>70.6 kWh</b><span>ลดได้รวม/วัน</span></div>
+              <div class="micro"><b>26°C</b><span>setpoint สูงสุดตามโจทย์</span></div>
+              <div class="micro"><b>10,590</b><span>บาท/เดือน DR credit*</span></div>
+            </div>
+            <p class="tiny" style="margin:11px 0 0">*คิด 5 บาท/kWh × 30 วัน และสมมติได้รับการจ่ายครบตาม event; ต้องตรวจ baseline/กติกา utility จริง</p>
+          </article>
+        </div>
+        <div class="callout" style="margin-top:18px"><strong>DR contribution:</strong> BESS 45.184 kWh/event-day + HVAC 25.416 kWh/event-day = 70.600 kWh; ไม่ได้นับ PV เป็น DR credit และยังไม่ใส่ rebound/pre-cooling dynamics ในโมเดล</div>
+      </div>
+    </section>
+
+        <section class="slide" data-title="Live Dispatch" data-enter="explorer" data-nocount="1">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">09 · LIVE DISPATCH EXPLORER</div><h2>เลื่อนเวลาดู <span class="accent">พลังงานไหลทั้งวัน</span></h2></div>
+          <p class="sublead">ข้อมูลรายชั่วโมงจากชีต 04_BEMS_DR + ตารางเดินระบบที่ได้จาก LP ชุดเดียวกับ solveBessLP ใน MATLAB — กดเล่น ลาก slider หรือคลิกแท่งในกราฟล่าง</p>
+        </div>
+        <div class="xtop">
+          <div class="seg" id="x-seg" role="tablist" aria-label="เลือกกรณี">
+          <button type="button" data-sc="base">ฐานเดิม</button>
+          <button type="button" data-sc="pv">PV</button>
+          <button type="button" data-sc="bess">PV + BESS</button>
+          <button type="button" data-sc="dr" class="on">PV + BESS + BEMS/DR</button>
+        </div>
+          <div class="xctl">
+            <button type="button" class="playbtn" id="x-play" aria-label="เล่นหรือหยุด">▶</button>
+            <input class="rng" id="x-range" type="range" min="1" max="24" step="1" value="8" aria-label="เลือกชั่วโมง">
+            <div class="seg" id="x-speed"><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" class="on">1×</button><button type="button" data-speed="2">2×</button></div>
+          </div>
+        </div>
+        <div class="explorer">
+          <article class="card pad still" style="padding:12px">
+            <svg id="x-flow" class="flowsvg" viewBox="0 0 760 400" role="img" aria-label="แผนภาพการไหลของพลังงานระหว่าง PV กริด แบตเตอรี่ และอาคาร">
+              <g fill="none" stroke="rgba(222,239,227,.10)" stroke-width="3" stroke-linecap="round">
+                <path d="M180,90 C240,90 250,180 290,180"/>
+                <path d="M180,310 C240,310 250,235 290,235"/>
+                <path d="M570,285 C525,285 510,232 470,232"/>
+                <path d="M470,258 C520,258 525,338 570,338"/>
+                <path d="M470,170 C530,170 520,80 570,80"/>
+              </g>
+              <path id="f-pv" class="fl" stroke="#63e3a1" d="M180,90 C240,90 250,180 290,180"/>
+              <path id="f-grid" class="fl" stroke="#ff7d73" d="M180,310 C240,310 250,235 290,235"/>
+              <path id="f-dis" class="fl" stroke="#83b9ff" d="M570,285 C525,285 510,232 470,232"/>
+              <path id="f-chg" class="fl" stroke="#c1a6ff" d="M470,258 C520,258 525,338 570,338"/>
+              <path id="f-hvac" class="fl" stroke="#ffc56c" d="M470,170 C530,170 520,80 570,80"/>
+
+              <g id="n-pv" class="nd">
+                <rect class="fn" x="30" y="40" width="150" height="100" rx="18"/>
+                <text class="fn-t" x="46" y="66">SOLAR PV</text>
+                <text class="fn-v" id="x-pv" x="46" y="100">0.0 kW</text>
+                <text class="fn-s" id="x-pvsub" x="46" y="124">—</text>
+              </g>
+              <g id="n-grid" class="nd">
+                <rect class="fn" x="30" y="260" width="150" height="100" rx="18"/>
+                <text class="fn-t" x="46" y="286">GRID</text>
+                <text class="fn-v" id="x-grid" x="46" y="320">0.0 kW</text>
+                <text class="fn-s" id="x-gridsub" x="46" y="344">—</text>
+              </g>
+              <g id="n-bldg" class="nd">
+                <rect class="fn" id="x-bldgrect" x="290" y="140" width="180" height="130" rx="20"/>
+                <text class="fn-t" x="308" y="168">BUILDING LOAD</text>
+                <text class="fn-v big" id="x-load" x="308" y="212">0 kW</text>
+                <text class="fn-s" id="x-ac" x="308" y="238">แอร์ setpoint 24.0 °C</text>
+                <text class="fn-s" id="x-temp" x="308" y="256">—</text>
+              </g>
+              <g id="n-hvac" class="nd">
+                <rect class="fn" x="570" y="30" width="160" height="100" rx="18"/>
+                <text class="fn-t" x="586" y="56">HVAC · BEMS</text>
+                <text class="fn-v" id="x-hvac" x="586" y="90">−0.0 kW</text>
+                <text class="fn-s" id="x-sp" x="586" y="114">setpoint 24.0 °C</text>
+              </g>
+              <g id="n-bess" class="nd">
+                <rect class="fn" x="570" y="250" width="160" height="130" rx="18"/>
+                <text class="fn-t" x="586" y="276">BESS · 384 kWh</text>
+                <rect x="588" y="290" width="34" height="76" rx="7" fill="rgba(255,255,255,.04)" stroke="rgba(193,166,255,.5)" stroke-width="1.5"/>
+                <rect id="x-socfill" x="591" y="363" width="28" height="0" rx="4" fill="#b8a2fb"/>
+                <text class="fn-v" id="x-soc" x="634" y="318" style="font-size:20px">0 kWh</text>
+                <text class="fn-s" id="x-socpct" x="634" y="338">0%</text>
+                <text class="fn-s" id="x-bat" x="634" y="356">—</text>
+              </g>
+            </svg>
+            <div class="xlegend" style="padding:0 8px 4px"><span style="--c:#63e3a1"><i></i>PV</span><span style="--c:#ff7d73"><i></i>Grid</span><span style="--c:#83b9ff"><i></i>BESS จ่าย</span><span style="--c:#c1a6ff"><i></i>BESS ชาร์จ</span><span style="--c:#ffc56c"><i></i>แอร์ถูกลดโหลด (DR)</span></div>
+          </article>
+          <div class="xside">
+            <div class="micro wide"><span class="xk">เวลา</span><b id="x-clock">00:00–01:00</b>
+              <div class="chips"><span class="chip off" id="x-tou">Off-Peak</span><span class="chip dr" id="x-dr" hidden>DR EVENT · ลด 20%</span></div></div>
+            <div class="micro"><span class="xk">Grid import</span><b id="x-grid2">0.0 kW</b><div class="mbar"><i id="x-gridbar"></i><u></u></div><span class="tiny" style="margin-top:7px">เส้นขาว = เป้า On-Peak 80 kW</span></div>
+            <div class="micro"><span class="xk">BESS SOC</span><b id="x-soc2">—</b><div class="mbar purple"><i id="x-socbar"></i></div><span class="tiny" style="margin-top:7px">ขั้นต่ำ 10% (DoD 90%)</span></div>
+            <div class="micro wide"><span class="xk">ค่าไฟพลังงานชั่วโมงนี้</span><b id="x-cost">฿0</b><div class="mbar amber"><i id="x-cumbar"></i></div><span class="tiny" id="x-cum" style="margin-top:7px">สะสม ฿0</span></div>
+          </div>
+        </div>
+        <article class="card pad still" style="margin-top:16px;padding:16px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="eyebrow">24-HOUR SUPPLY STACK · คลิกเพื่อเลือกชั่วโมง</div>
+            <div class="xlegend" style="margin:0"><span style="--c:#63e3a1"><i></i>PV</span><span style="--c:#83b9ff"><i></i>BESS จ่าย</span><span style="--c:#ffc56c"><i></i>ลดแอร์</span><span style="--c:#ff7d73"><i></i>Grid</span><span style="--c:#c1a6ff"><i></i>ชาร์จแบต</span></div>
+          </div>
+          <svg id="x-tl" class="chart" viewBox="0 0 1000 190" role="img" aria-label="กราฟแท่งแสดงที่มาของพลังงานรายชั่วโมงตามกรณีที่เลือก" style="margin-top:8px"></svg>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide" data-title="DR What-if" data-enter="whatif" data-nocount="1">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">10 · DR WHAT-IF</div><h2>ลองปรับระดับ DR<br><span class="accent">ดูบิลและพีกเปลี่ยนทันที</span></h2></div>
+          <p class="sublead">ทุกจุดคือการแก้ LP ใหม่ (13:00–16:00, setpoint ≤ 26°C, BESS 384 kWh / 40 kW) ที่คำขอลดโหลด 10–40% ไม่ใช่การลากเส้นประมาณค่า</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad still">
+            <div class="eyebrow">DR REDUCTION REQUEST</div>
+            <div class="bigpct"><span id="w-pct">20</span><small>%</small></div>
+            <input class="rng" id="w-range" type="range" min="10" max="40" step="5" value="20" aria-label="ระดับคำขอ DR เป็นเปอร์เซ็นต์">
+            <div class="ticks"><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span><span>35</span><span>40</span></div>
+            <div class="splitbar"><span class="s1" id="w-s1" style="width:50%"></span><span class="s2" id="w-s2" style="width:50%"></span></div>
+            <div class="splitlab"><span style="color:#83b9ff">BESS <b id="w-bess" style="color:inherit">0</b> kWh</span><span style="color:#ffc56c">แอร์ <b id="w-hvac" style="color:inherit">0</b> kWh</span></div>
+            <div class="grid three">
+              <div class="micro"><b id="w-dr">0</b><span>kWh ลดได้/วัน</span></div>
+              <div class="micro"><b id="w-inc">0</b><span>บาท/เดือน DR credit</span></div>
+              <div class="micro"><b id="w-set">26.0°C</b><span>setpoint สูงสุดที่ใช้</span></div>
+            </div>
+          </article>
+          <article class="card pad still">
+            <div class="eyebrow">NET MONTHLY BILL vs DR LEVEL</div>
+            <svg id="w-chart" class="chart" viewBox="0 0 660 290" role="img" aria-label="กราฟบิลสุทธิรายเดือนเทียบกับระดับ DR" style="margin-top:8px"></svg>
+            <div class="grid three" style="margin-top:6px">
+              <div class="micro"><b id="w-net">0</b><span>พันบาท/เดือน บิลสุทธิ</span></div>
+              <div class="micro"><b id="w-sav">0%</b><span>ประหยัดจากฐานเดิม</span></div>
+              <div class="micro"><b id="w-peak">0</b><span>kW On-Peak demand</span></div>
+            </div>
+          </article>
+        </div>
+        <div class="callout" id="w-note" style="margin-top:18px"></div>
+      </div>
+    </section>
+
+    <section class="slide economics-slide" data-title="เปรียบเทียบค่าไฟ">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">11 · SCENARIO ECONOMICS</div><h2>ทุกทางเลือกดีขึ้น —<br><span class="accent">แต่เงินลงทุนกับผลลดพีกไม่เท่ากัน</span></h2></div>
+          <p class="sublead">เปรียบเทียบ bill: พลังงาน + Demand charge − DR credit<br>ต้นทุนระบบจาก workbook: PV 22,000 บาท/kWp · BESS 9,000 บาท/kWh</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad">
+            <div class="eyebrow">NET MONTHLY BILL</div>
+            <h3 style="margin:9px 0 17px">ค่าไฟสุทธิ (พันบาท/เดือน)</h3>
+            <div id="scenario-bars"></div>
+            <div class="divider"></div>
+            <div class="callout green"><strong>ดีที่สุดด้านค่าไฟในแบบจำลอง:</strong> PV+BESS+BEMS/DR เหลือราว 104.0 พันบาท/เดือน — ลดจากฐาน 92.3 พันบาท/เดือน หรือ 47.0%</div>
+          </article>
+          <div class="grid">
+            <article class="card pad tradeoff-card">
+              <div class="eyebrow">COMPARE THE TRADE-OFF</div>
+              <div class="statline"><span class="num">PV</span><span class="desc">เงินลงทุน 2.64 ล้านบาท · ประหยัด ~65.3k บาท/เดือน · Peak ~82 kW</span></div>
+              <div class="statline"><span class="num">PV+BESS</span><span class="desc">ลงทุน 6.10 ล้านบาท · Peak ~42 kW · ตัด Peak ได้มากที่สุด</span></div>
+              <div class="statline"><span class="num">PV+BESS+DR</span><span class="desc">ลงทุนเท่าเดิมในแบบจำลอง · bill ต่ำสุด ~104.0k/เดือน · Peak ~57.7 kW</span></div>
+              <div class="statline"><span class="num">132.93</span><span class="desc">บาท/kW/เดือน Demand charge อ้างอิงในโจทย์</span></div>
+            </article>
+            <article class="card pad">
+              <div class="eyebrow">SIMPLE PAYBACK · INDICATIVE ONLY</div>
+              <div class="scenario-row"><div class="scenario-name">PV</div><div class="payback-track"><i style="width:42%"></i></div><div class="scenario-money">3.37 ปี</div><div class="scenario-save">เร็วสุด</div></div>
+              <div class="scenario-row"><div class="scenario-name">PV+BESS</div><div class="payback-track"><i style="width:79%"></i></div><div class="scenario-money">6.33 ปี</div><div class="scenario-save"></div></div>
+              <div class="scenario-row"><div class="scenario-name">BESS+DR</div><div class="payback-track"><i style="width:69%"></i></div><div class="scenario-money">5.50 ปี</div><div class="scenario-save"></div></div>
+              <p class="tiny" style="margin:12px 0 0">Simple payback = Capex ÷ เงินประหยัดรายปีจากแบบจำลอง; ไม่ discount cash flow และไม่รวม O&M/เสื่อม/financing/ค่า HVAC-BEMS</p>
+            </article>
+          </div>
+        </div>
+        <p class="small" style="margin-top:14px">กรณี PV+BESS ลด peak ลงได้มาก แต่ peak แบบ DR อาจสูงขึ้น เพราะ LP ต้องทำตามคำขอ 20% ใน event time — เป้าหมาย “ลดค่าไฟ” และ “ลด peak ทุกชั่วโมง” ไม่ใช่ objective เดียวกัน</p>
+      </div>
+    </section>
+
+    <section class="slide" data-title="สมมติฐานและตรวจสอบ">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">12 · ASSUMPTIONS & ENGINEERING CHECK</div><h2>ตัวเลขใดมาจากโจทย์<br>และข้อใด <span class="amber">ยังเป็นสมมติฐาน</span></h2></div>
+          <p class="sublead">แยกข้อมูลอ้างอิงกับค่าที่ใส่เพิ่มสำหรับ model/ภาพจำลอง เพื่อไม่ให้ concept ถูกเข้าใจว่าเป็นแบบอนุมัติก่อสร้าง</p>
+        </div>
+        <div class="grid two">
+          <article class="card pad">
+            <div class="eyebrow">FROM WORKBOOK</div>
+            <h3 style="margin-top:10px">ข้อมูลโจทย์ / ค่าที่ให้มา</h3>
+            <div class="grid two">
+              <div class="micro"><b>600 m²</b><span>พื้นที่หลังคา usable</span></div>
+              <div class="micro"><b>5 m²/kWp</b><span>พื้นที่ต่อกำลังติดตั้งโดยประมาณ</span></div>
+              <div class="micro"><b>DoD 90%</b><span>แบตเตอรี่ LFP</span></div>
+              <div class="micro"><b>η RT 95%</b><span>ประสิทธิภาพ round-trip</span></div>
+              <div class="micro"><b>PCS 96%</b><span>ประสิทธิภาพ inverter/PCS</span></div>
+              <div class="micro"><b>20% DR</b><span>13:00–16:00, 5 บาท/kWh (สมมติ)</span></div>
+            </div>
+            <p class="small" style="margin:14px 0 0">TOU: On-Peak 4.60 / Off-Peak 2.90 บาท/kWh; Demand charge 132.93 บาท/kW/เดือน — ไฟล์ระบุว่าเป็นค่าเพื่อการศึกษา ควรตรวจ tariff ปัจจุบัน</p>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">MODEL ADDED</div>
+            <h3 style="margin-top:10px">สมมติฐานที่ต้องแทนด้วยข้อมูลจริง</h3>
+            <ul class="list">
+              <li>อาคารสมมติ footprint 30 × 20 m ให้ได้ 600 m²; ยังไม่มีแปลนสำรวจ/ตำแหน่งสิ่งกีดขวาง</li>
+              <li>แผงอ้างอิง 545 Wp, 2.278 × 1.134 m, ~28 kg/แผง เพื่อคำนวณจำนวน/รูปภาพเท่านั้น</li>
+              <li>PV Performance Ratio 0.80; ไม่มีข้อมูลเงารายชั่วโมงหรือ orientation/tilt</li>
+              <li>หนึ่งวันตัวแทนถูกคูณ 30 วัน; ไม่มีเสาร์-อาทิตย์/ฤดูกาล/วันหยุด</li>
+              <li>baseline setpoint 24°C และลด HVAC 6% ต่อ °C; ยังไม่มีแบบจำลองอาคาร/thermal inertia</li>
+              <li>สำรอง critical load 1 วันเป็น sizing check แยก; dispatch LP ไม่สงวน SOC สำหรับโหลดวิกฤต</li>
+            </ul>
+          </article>
+        </div>
+        <div class="callout red" style="margin-top:18px"><strong>ก่อนใช้เป็นข้อเสนอจัดซื้อ/ก่อสร้าง:</strong> สำรวจหลังคาและโครงสร้างรับน้ำหนัก/ลม, เงาและ setbacks, string/inverter/DC protection, battery fire safety, interconnection, 15-minute demand data, DR eligibility/baseline, thermal comfort และค่าใช้จ่าย O&M</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="แผนดำเนินงาน">
+      <div class="slide-inner">
+        <div class="title-row">
+          <div><div class="eyebrow">13 · NEXT STEPS</div><h2>จาก concept สู่แบบที่<br><span class="accent">ตัดสินใจลงทุนได้</span></h2></div>
+          <p class="sublead">ข้อเสนอเป็นลำดับงานเพื่อลดความเสี่ยงด้านข้อมูล วิศวกรรม และความคุ้มค่า</p>
+        </div>
+        <div class="grid four">
+          <article class="card pad"><div class="section-no">PHASE 01</div><h3 style="margin-top:12px">วัดจริง</h3><p class="small">ติด smart meter 15 นาทีอย่างน้อย 2–4 สัปดาห์ ครอบคลุมวันทำงาน/วันหยุด; เก็บ PV, HVAC, import, event และ SOC</p><span class="pill">ข้อมูลจริง</span></article>
+          <article class="card pad"><div class="section-no">PHASE 02</div><h3 style="margin-top:12px">สำรวจหลังคา</h3><p class="small">ใช้แปลน/as-built, วัดพื้นที่ใช้ได้, parapet, access, เงาบัง, ทิศ/tilt และให้วิศวกรตรวจโครงสร้าง</p><span class="pill">ยืนยัน kWp</span></article>
+          <article class="card pad"><div class="section-no">PHASE 03</div><h3 style="margin-top:12px">ปรับแบบจำลอง</h3><p class="small">แทน load profile, tariff, DR rule และ device limit จริง; ใส่ degradation, O&M, battery replacement และ sensitivity</p><span class="pill">ตรวจผล LP</span></article>
+          <article class="card pad"><div class="section-no">PHASE 04</div><h3 style="margin-top:12px">ทดสอบนำร่อง</h3><p class="small">ติดตั้ง/commission ระบบวัดและ BEMS บางส่วนก่อน; ทดสอบ fail-safe, comfort, peak control, DR measurement & verification</p><span class="pill">ขยายเมื่อผ่าน KPI</span></article>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <article class="card pad">
+            <div class="eyebrow">KPI FOR PILOT</div>
+            <h3 style="margin-top:9px">ตัวชี้วัดที่ควรรายงาน</h3>
+            <div class="pillrow"><span class="pill">kWh PV จริง</span><span class="pill">kWh ซื้อจากกริด</span><span class="pill">Peak 15 นาที</span><span class="pill">BESS throughput</span><span class="pill">SOC min/max</span><span class="pill">DR verified kWh</span><span class="pill">อุณหภูมิห้อง</span><span class="pill">Availability</span></div>
+          </article>
+          <article class="card pad">
+            <div class="eyebrow">TAKEAWAY</div>
+            <h3 style="margin-top:9px">ข้อสรุปจากชุดข้อมูลปัจจุบัน</h3>
+            <p style="font-size:16px;color:#d5e5db">พื้นที่หลังคามีศักยภาพสำหรับ PV ราว <strong class="accent">120 kWp</strong>; แบบจำลองชี้ว่าร่วมกับ BESS และ DR อาจลด bill ลงได้ราว <strong class="accent">47%</strong> ภายใต้สมมติฐานที่กำหนด</p>
+            <p class="small" style="margin-bottom:0">ตัวเลขนี้ใช้เพื่อเรียนรู้และจัดลำดับการสำรวจ — ไม่ใช่ guarantee ผลประหยัดหรือแบบติดตั้งที่รับรองความปลอดภัย</p>
+          </article>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:28px;color:#789487;font-size:11px">
+          <span>SMART GREEN ENERGY · BEMS + PV + BESS · MATLAB LP</span>
+          <span>END · ขอบคุณ</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="rail" id="rail" aria-label="เลือกสไลด์"></nav>
+  <div class="hint">← → เปลี่ยนสไลด์ · hover กราฟดูค่า · F เต็มจอ · P พิมพ์/PDF</div>
+  <div class="controls" aria-label="เครื่องมือสไลด์">
+    <button class="ctrl" id="prev" aria-label="สไลด์ก่อนหน้า" title="ก่อนหน้า (←)">←</button>
+    <span class="counter" id="counter">01 / 14</span>
+    <button class="ctrl" id="next" aria-label="สไลด์ถัดไป" title="ถัดไป (→)">→</button>
+    <button class="ctrl" id="fullscreen" aria-label="เต็มจอ" title="เต็มจอ (F)">⛶</button>
+    <button class="ctrl" id="print" aria-label="พิมพ์หรือบันทึก PDF" title="พิมพ์ / PDF (P)">⎙</button>
+  </div>
+
+  <script>
+    "use strict";
+    const slides = [...document.querySelectorAll(".slide")];
+    const progress = document.getElementById("progress");
+    const counter = document.getElementById("counter");
+    const rail = document.getElementById("rail");
+    let current = 0;
+
+    function goTo(index) {
+      const prevSlide = current;
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === current);
+        slide.setAttribute("aria-hidden", i === current ? "false" : "true");
+      });
+      [...rail.children].forEach((button, i) => button.classList.toggle("active", i === current));
+      counter.textContent = `${String(current + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      document.title = `${slides[current].dataset.title} · Smart Green Energy`;
+      slides[current].scrollTop = 0;
+      if (window.onSlideEnter) window.onSlideEnter(slides[current], prevSlide);
+    }
+
+    slides.forEach((slide, index) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.title = `${index + 1}. ${slide.dataset.title}`;
+      dot.setAttribute("aria-label", dot.title);
+      dot.addEventListener("click", () => goTo(index));
+      rail.appendChild(dot);
+    });
+    document.getElementById("prev").addEventListener("click", () => goTo(current - 1));
+    document.getElementById("next").addEventListener("click", () => goTo(current + 1));
+    document.getElementById("fullscreen").addEventListener("click", async () => {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
+      else await document.exitFullscreen?.();
+    });
+    document.getElementById("print").addEventListener("click", () => window.print());
+    document.addEventListener("keydown", event => {
+      if (event.target.matches && event.target.matches("input, select, textarea")) return;
+      if (event.target.closest && event.target.closest(".xctl, .seg") && (event.key === " " || event.key === "Enter")) return;
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); goTo(current + 1); }
+      if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); goTo(current - 1); }
+      if (event.key === "Home") goTo(0);
+      if (event.key === "End") goTo(slides.length - 1);
+      if (event.key.toLowerCase() === "f") document.getElementById("fullscreen").click();
+      if (event.key.toLowerCase() === "p") window.print();
+    });
+    let touchStartX = 0;
+    let touchStartY = 0, touchBlock = false;
+    document.addEventListener("touchstart", event => { touchStartX = event.changedTouches[0].screenX; touchStartY = event.changedTouches[0].screenY; touchBlock = !!(event.target.closest && event.target.closest("input, .seg")); }, {passive:true});
+    document.addEventListener("touchend", event => {
+      const dx = event.changedTouches[0].screenX - touchStartX;
+      const dy = event.changedTouches[0].screenY - touchStartY;
+      if (!touchBlock && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) goTo(current + (dx < 0 ? 1 : -1));
+    }, {passive:true});
+
+    const modules = document.getElementById("module-grid");
+    for (let i = 0; i < 220; i++) { const sp = document.createElement("span"); sp.style.setProperty("--k", i); modules.appendChild(sp); }
+    const rack = document.getElementById("battery-rack");
+    for (let s = 1; s <= 5; s++) {
+      const column = document.createElement("div");
+      column.className = "string";
+      const label = document.createElement("div");
+      label.className = "string-label";
+      label.textContent = `STRING ${s} · 15S`;
+      const stack = document.createElement("div");
+      stack.className = "module-stack";
+      for (let m = 0; m < 15; m++) { const mi = document.createElement("i"); mi.style.setProperty("--k", m + s * 2); stack.appendChild(mi); }
+      column.append(label, stack);
+      rack.appendChild(column);
+    }
+
+    const D = {"hours":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],"times":["00:00–01:00","01:00–02:00","02:00–03:00","03:00–04:00","04:00–05:00","05:00–06:00","06:00–07:00","07:00–08:00","08:00–09:00","09:00–10:00","10:00–11:00","11:00–12:00","12:00–13:00","13:00–14:00","14:00–15:00","15:00–16:00","16:00–17:00","17:00–18:00","18:00–19:00","19:00–20:00","20:00–21:00","21:00–22:00","22:00–23:00","23:00–24:00"],"tou":["Off-Peak","Off-Peak","Off-Peak","Off-Peak","Off-Peak","Off-Peak","Off-Peak","Off-Peak","Off-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","On-Peak","Off-Peak","Off-Peak"],"load":[18.0,17.0,16.0,16.0,16.0,18.0,25.0,55.0,95.0,110.0,118.0,120.0,100.0,115.0,120.0,118.0,105.0,80.0,45.0,30.0,25.0,22.0,20.0,19.0],"G":[0.0,0.0,0.0,0.0,0.0,0.0,82.0,240.0,382.0,498.0,580.0,623.0,623.0,580.0,498.0,382.0,240.0,82.0,0.0,0.0,0.0,0.0,0.0,0.0],"Tamb":[26.5,26.2,26.0,25.8,25.6,25.6,26.0,27.0,28.5,30.0,31.5,32.5,33.5,34.0,34.0,33.5,32.5,31.0,29.5,28.5,28.0,27.5,27.2,26.8],"pvAvail":[0.0,0.0,0.0,0.0,0.0,0.0,7.872,23.040000000000003,36.672000000000004,47.808,55.68,59.80800000000001,59.80800000000001,55.68,47.808,36.672000000000004,23.040000000000003,7.872,0.0,0.0,0.0,0.0,0.0,0.0],"params":{"pvkwp":120.0,"E":384.0,"Pbess":40.0,"eff":0.9356922571016605,"need":333.6804594165837,"crit":240,"shave":281.0,"modules":75,"par":5,"series":15},"scen":{"base":{"daily":6010.299999999999,"energy":180308.99999999997,"demand":15951.6,"dr_kwh":0.0,"dr_income":0.0,"net":196260.59999999998,"peak":120.0,"maxgrid":120.0,"capex":0,"saving":0.0,"savePct":0.0,"payback":null,"series":{"grid":[18.0,17.0,16.0,16.0,16.0,18.0,25.0,55.0,95.0,110.0,118.0,120.0,100.0,115.0,120.0,118.0,105.0,80.0,45.0,30.0,25.0,22.0,20.0,19.0],"pv":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"charge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"soc":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"hvac":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"setpoint":[24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0]}},"pv":{"daily":4001.0967999999993,"energy":120032.90399999998,"demand":10894.942799999999,"dr_kwh":0.0,"dr_income":0.0,"net":130927.84679999998,"peak":81.96,"maxgrid":81.96,"capex":2640000.0,"saving":65332.75319999999,"savePct":33.28877686096955,"payback":3.3673768397074073,"series":{"grid":[18.0,17.0,16.0,16.0,16.0,18.0,17.128,31.96,58.328,62.192,62.32,60.192,40.192,59.32,72.192,81.328,81.96,72.128,45.0,30.0,25.0,22.0,20.0,19.0],"pv":[0.0,0.0,0.0,0.0,0.0,0.0,7.872,23.04,36.672,47.808,55.68,59.808,59.808,55.68,47.808,36.672,23.04,7.872,0.0,0.0,0.0,0.0,0.0,0.0],"charge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"soc":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"hvac":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"setpoint":[24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0]}},"bess":{"daily":3679.5694827372026,"energy":110387.08448211607,"demand":5577.742799999999,"dr_kwh":0.0,"dr_income":0.0,"net":115964.82728211606,"peak":41.959999999999994,"maxgrid":60.0,"capex":6096000.0,"saving":80295.77271788391,"savePct":40.91283360892809,"payback":6.326609518845261,"series":{"grid":[58.0,57.0,16.0,56.0,56.0,58.0,17.128,37.156,58.328,41.96,41.96,20.192,40.192,41.96,33.025,41.96,41.96,41.96,41.96,30.0,25.0,22.0,60.0,59.0],"pv":[0.0,0.0,0.0,0.0,0.0,0.0,7.872,23.04,36.672,47.808,55.68,59.808,59.808,55.68,47.808,36.672,23.04,7.872,0.0,0.0,0.0,0.0,0.0,0.0],"charge":[40.0,40.0,0.0,40.0,40.0,40.0,0.0,5.196,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0],"discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.232,20.36,40.0,0.0,17.36,39.167,39.368,40.0,30.168,3.04,0.0,0.0,0.0,0.0,0.0],"soc":[229.428,266.855,266.855,304.283,341.711,379.138,379.138,384.0,384.0,362.378,340.618,297.869,297.869,279.316,237.458,195.384,152.635,120.394,117.145,117.145,117.145,117.145,154.572,192.0],"hvac":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"setpoint":[24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0]}},"dr":{"daily":3562.655882737203,"energy":106879.67648211608,"demand":7673.783039999999,"dr_kwh":70.6,"dr_income":10590.0,"net":103963.45952211607,"peak":57.727999999999994,"maxgrid":60.0,"capex":6096000.0,"saving":92297.1404778839,"savePct":47.02784994944677,"payback":5.5039624994853025,"series":{"grid":[58.0,57.0,16.0,56.0,56.0,58.0,17.128,37.156,58.328,22.192,32.209,20.192,40.192,36.32,48.192,57.728,41.96,57.728,5.0,30.0,25.0,22.0,60.0,59.0],"pv":[0.0,0.0,0.0,0.0,0.0,0.0,7.872,23.04,36.672,47.808,55.68,59.808,59.808,55.68,47.808,36.672,23.04,7.872,0.0,0.0,0.0,0.0,0.0,0.0],"charge":[40.0,40.0,0.0,40.0,40.0,40.0,0.0,5.196,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0],"discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,30.111,40.0,0.0,14.72,15.36,15.104,40.0,14.4,40.0,0.0,0.0,0.0,0.0,0.0],"soc":[229.428,266.855,266.855,304.283,341.711,379.138,379.138,384.0,384.0,341.251,309.071,266.322,266.322,250.59,234.175,218.032,175.283,159.894,117.145,117.145,117.145,117.145,154.572,192.0],"hvac":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.28,8.64,8.496,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"setpoint":[24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,26.0,26.0,26.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0,24.0]}}},"drSweep":[{"pct":10,"feasible":true,"net":110827.03352211608,"peak":69.52799999999999,"dr_kwh":35.3,"income":5295.0,"saving":85433.5664778839,"bess":9.884000000000002,"hvac":25.416,"maxSet":26.0},{"pct":15,"feasible":true,"net":107395.24652211607,"peak":63.62799999999999,"dr_kwh":52.95,"income":7942.5,"saving":88865.35347788391,"bess":27.534,"hvac":25.416,"maxSet":26.0},{"pct":20,"feasible":true,"net":103963.45952211607,"peak":57.727999999999994,"dr_kwh":70.6,"income":10590.0,"saving":92297.1404778839,"bess":45.184,"hvac":25.416,"maxSet":26.0},{"pct":25,"feasible":true,"net":100531.67252211607,"peak":51.82799999999999,"dr_kwh":88.25,"income":13237.5,"saving":95728.9274778839,"bess":62.834,"hvac":25.416,"maxSet":26.0},{"pct":30,"feasible":true,"net":97099.88552211608,"peak":45.928,"dr_kwh":105.9,"income":15885.0,"saving":99160.7144778839,"bess":80.484,"hvac":25.416,"maxSet":26.0},{"pct":35,"feasible":true,"net":93924.91928211607,"peak":41.959999999999994,"dr_kwh":123.55,"income":18532.5,"saving":102335.68071788391,"bess":98.134,"hvac":25.416,"maxSet":26.0},{"pct":40,"feasible":true,"net":91277.41928211605,"peak":41.959999999999994,"dr_kwh":141.2,"income":21180.0,"saving":104983.18071788392,"bess":115.784,"hvac":25.416,"maxSet":26.0}],"summary":{"energy":1423.0,"peak":120.0,"lf":0.4940972222222222,"onPeakE":1108.0,"psh":4.81,"pvEnergy":461.76}};
+    const load = D.load, irradiance = D.G, pv = D.pvAvail;
+    const grid = load.map((value, i) => value - Math.min(value, pv[i]));
+    const drSeries = D.scen.dr.series, drIdx = [13, 14, 15];
+    const drBess = drIdx.map(i => drSeries.discharge[i]);
+    const drHvac = drIdx.map(i => drSeries.hvac[i]);
+    const drTarget = drIdx.map(i => 0.2 * load[i]);
+
+    function pathFrom(values, x, y, w, h, min, max) {
+      return values.map((value, i) => {
+        const px = x + (i / (values.length - 1)) * w;
+        const py = y + h - ((value - min) / (max - min)) * h;
+        return `${i ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`;
+      }).join(" ");
+    }
+    /* ================= MOTION + INTERACTION UPGRADE ================= */
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    const ease = t => 1 - Math.pow(1 - t, 4);
+    const fmt = (v, d = 1) => Number(v).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+    const TOUPRICE = D.tou.map(t => t === "On-Peak" ? 4.60 : 2.90);
+    const tipEl = $("#tip");
+
+    function showTip(html, x, y) {
+      tipEl.innerHTML = html;
+      tipEl.style.opacity = 1;
+      const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+      let left = x + 18, top = y - h - 14;
+      if (left + w > innerWidth - 8) left = x - w - 18;
+      if (top < 8) top = y + 20;
+      tipEl.style.transform = `translate(${left}px, ${top}px)`;
+    }
+    function hideTip() { tipEl.style.opacity = 0; }
+    const trow = (c, k, v) => `<div class="row"><i style="--c:${c}">${k}</i><b>${v}</b></div>`;
+
+    /* generic smoothing helper: numeric targets are eased towards frame by frame */
+    function makeLerper(apply, rate = 8) {
+      const st = {cur: {}, tgt: {}, raf: 0, last: 0, keep: false};
+      function step(now) {
+        const dt = Math.min(.05, (now - st.last) / 1000 || .016);
+        st.last = now;
+        let moving = false;
+        for (const k in st.tgt) {
+          if (st.cur[k] === undefined) { st.cur[k] = st.tgt[k]; continue; }
+          const d = st.tgt[k] - st.cur[k];
+          if (Math.abs(d) > 1e-3) { st.cur[k] += reduce ? d : d * Math.min(1, dt * rate); moving = true; }
+          else st.cur[k] = st.tgt[k];
+        }
+        apply(st.cur, dt);
+        st.raf = (moving || st.keep) ? requestAnimationFrame(step) : 0;
+      }
+      st.set = (t, snap) => {
+        st.tgt = t;
+        if (snap) st.cur = {...t};
+        if (!st.raf) { st.last = performance.now(); st.raf = requestAnimationFrame(step); }
+      };
+      return st;
+    }
+
+    function animateStroke(root, dur = 1500) {
+      if (reduce) return;
+      $$("path[data-draw]", root).forEach((p, k) => {
+        let L = 0;
+        try { L = p.getTotalLength(); } catch (e) { return; }
+        if (!L) return;
+        p.style.transition = "none";
+        p.style.strokeDasharray = L;
+        p.style.strokeDashoffset = L;
+        p.getBoundingClientRect();
+        p.style.transition = `stroke-dashoffset ${dur}ms cubic-bezier(.3,.7,.2,1) ${k * 140}ms`;
+        p.style.strokeDashoffset = 0;
+      });
+    }
+
+    /* ---------- hourly profile chart (hover tooltip, area fill, line draw) ---------- */
+    function drawProfile() {
+      const svg = $("#profile-chart");
+      const x = 56, y = 22, w = 690, h = 235, max = 140, n = 24;
+      const px = i => x + (i + .5) / n * w;
+      const py = v => y + h - v / max * h;
+      const line = vals => vals.map((v, i) => `${i ? "L" : "M"}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(" ");
+      const parts = [`<defs><linearGradient id="pvfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63e3a1" stop-opacity=".38"/><stop offset="1" stop-color="#63e3a1" stop-opacity="0"/></linearGradient></defs>`];
+      [0, 40, 80, 120].forEach(v => {
+        const yy = py(v);
+        parts.push(`<line class="gridline" x1="${x}" y1="${yy}" x2="${x + w}" y2="${yy}"/><text x="${x - 12}" y="${yy + 4}" text-anchor="end">${v}</text>`);
+      });
+      for (let hr = 0; hr <= 24; hr += 4) {
+        const xx = x + hr / 24 * w;
+        parts.push(`<line class="gridline" x1="${xx}" y1="${y}" x2="${xx}" y2="${y + h}" opacity=".45"/><text x="${xx}" y="${y + h + 20}" text-anchor="middle">${String(hr).padStart(2, "0")}</text>`);
+      }
+      const drX = x + 13 / 24 * w, drW = 3 / 24 * w;
+      parts.push(`<rect x="${drX}" y="${y}" width="${drW}" height="${h}" fill="#ffc56c" opacity=".09"/><text x="${drX + drW / 2}" y="${y + 14}" text-anchor="middle" fill="#ffc56c">DR</text>`);
+      parts.push(`<line x1="${x}" x2="${x + w}" y1="${py(80)}" y2="${py(80)}" stroke="#9db4a8" stroke-dasharray="5 5" opacity=".6"/><text x="${x + w - 4}" y="${py(80) - 6}" text-anchor="end">เป้า 80 kW</text>`);
+      parts.push(`<line class="axisline" x1="${x}" y1="${y + h}" x2="${x + w}" y2="${y + h}"/>`);
+      parts.push(`<path class="area" d="${line(pv)} L${px(n - 1)},${y + h} L${px(0)},${y + h} Z" fill="url(#pvfill)"/>`);
+      parts.push(`<path data-draw class="line-load" d="${line(load)}"/>`);
+      parts.push(`<path data-draw class="line-pv" d="${line(pv)}"/>`);
+      parts.push(`<path data-draw class="line-grid" d="${line(grid)}"/>`);
+      load.forEach((v, i) => parts.push(`<circle class="marker dot" style="animation-delay:${i * 35 + 300}ms" cx="${px(i)}" cy="${py(v)}" r="2.8" fill="#ffc56c"/>`));
+      parts.push(`<text x="${x + w / 2}" y="${y + h + 42}" text-anchor="middle">ชั่วโมงของวัน</text>`);
+      parts.push(`<text x="15" y="${y + h / 2}" text-anchor="middle" transform="rotate(-90 15 ${y + h / 2})">กำลัง (kW)</text>`);
+      parts.push(`<g id="pc-guide" style="display:none"><line x1="0" x2="0" y1="${y}" y2="${y + h}" stroke="#d9f8e5" stroke-opacity=".55" stroke-dasharray="3 4"/>
+        <circle id="pc-a" r="5.5" fill="#ffc56c" stroke="#071713" stroke-width="2"/><circle id="pc-b" r="5.5" fill="#63e3a1" stroke="#071713" stroke-width="2"/><circle id="pc-c" r="5.5" fill="#ff7d73" stroke="#071713" stroke-width="2"/></g>`);
+      parts.push(`<rect class="hit" x="${x}" y="${y}" width="${w}" height="${h}"/>`);
+      svg.innerHTML = parts.join("");
+      const hit = $(".hit", svg), guide = $("#pc-guide", svg);
+      hit.addEventListener("pointermove", ev => {
+        const r = svg.getBoundingClientRect();
+        const sx = (ev.clientX - r.left) * (780 / r.width);
+        const i = Math.max(0, Math.min(n - 1, Math.floor((sx - x) / w * n)));
+        guide.style.display = "block";
+        guide.setAttribute("transform", `translate(${px(i)},0)`);
+        $("#pc-a", svg).setAttribute("cy", py(load[i]));
+        $("#pc-b", svg).setAttribute("cy", py(pv[i]));
+        $("#pc-c", svg).setAttribute("cy", py(grid[i]));
+        showTip(`<div class="head"><b>${D.times[i]}</b><span>${D.tou[i]}</span></div>`
+          + trow("#ffc56c", "โหลดอาคาร", fmt(load[i], 0) + " kW")
+          + trow("#63e3a1", "PV (PR 0.80)", fmt(pv[i], 1) + " kW")
+          + trow("#ff7d73", "Grid หลัง PV", fmt(grid[i], 1) + " kW")
+          + trow("#83b9ff", "แสงอาทิตย์", fmt(irradiance[i], 0) + " W/m²")
+          + trow("#c1a6ff", "อุณหภูมิ", fmt(D.Tamb[i], 1) + " °C"), ev.clientX, ev.clientY);
+      });
+      hit.addEventListener("pointerleave", () => { guide.style.display = "none"; hideTip(); });
+    }
+
+    /* ---------- DR event chart ---------- */
+    function drawDR() {
+      const svg = $("#dr-chart");
+      const x = 58, y = 24, w = 560, h = 175, max = 32, barW = 82;
+      const parts = [];
+      [0, 10, 20, 30].forEach(v => {
+        const yy = y + h - v / max * h;
+        parts.push(`<line class="gridline" x1="${x}" y1="${yy}" x2="${x + w}" y2="${yy}"/><text x="${x - 10}" y="${yy + 4}" text-anchor="end">${v}</text>`);
+      });
+      const names = ["13:00", "14:00", "15:00"];
+      names.forEach((name, i) => {
+        const cx = x + (i + .5) * w / 3, base = y + h;
+        const hv = drHvac[i] / max * h, bess = drBess[i] / max * h, total = drTarget[i] / max * h;
+        const d = i * 140;
+        parts.push(`<rect class="gbar" data-k="bess" data-i="${i}" style="animation-delay:${d}ms" x="${cx - barW / 2}" y="${base - bess}" width="${barW}" height="${bess}" rx="5" fill="#438fc1"/>`);
+        parts.push(`<rect class="gbar" data-k="hvac" data-i="${i}" style="animation-delay:${d + 120}ms" x="${cx - barW / 2}" y="${base - bess - hv}" width="${barW}" height="${hv}" rx="5" fill="#e5a84c"/>`);
+        parts.push(`<circle class="dot" style="animation-delay:${d + 700}ms" cx="${cx}" cy="${base - total}" r="5" fill="#071713" stroke="#63e3a1" stroke-width="2"/>`);
+        parts.push(`<text x="${cx}" y="${base + 22}" text-anchor="middle">${name}</text>`);
+        parts.push(`<text x="${cx}" y="${base - total - 11}" text-anchor="middle" fill="#d9f8e5" font-weight="700">${fmt(drTarget[i], 1)} kW</text>`);
+      });
+      const tot = drBess.reduce((a, b) => a + b, 0) + drHvac.reduce((a, b) => a + b, 0);
+      parts.push(`<text x="${x + w / 2}" y="${y + h + 47}" text-anchor="middle">คำขอรวม ${fmt(tot, 1)} kWh ต่อ event-day · 20% ของ baseline</text>`);
+      parts.push(`<text x="16" y="${y + h / 2}" text-anchor="middle" transform="rotate(-90 16 ${y + h / 2})">ลดโหลด (kW)</text>`);
+      svg.innerHTML = parts.join("");
+      $$(".gbar", svg).forEach(r => {
+        const i = +r.dataset.i, isB = r.dataset.k === "bess";
+        r.addEventListener("pointermove", ev => showTip(`<div class="head"><b>${names[i]}</b><span>DR</span></div>`
+          + (isB ? trow("#83b9ff", "BESS discharge", fmt(drBess[i], 2) + " kW") : trow("#ffc56c", "HVAC curtailment", fmt(drHvac[i], 2) + " kW"))
+          + trow("#63e3a1", "คำขอ 20%", fmt(drTarget[i], 1) + " kW"), ev.clientX, ev.clientY));
+        r.addEventListener("pointerleave", hideTip);
+      });
+    }
+
+    /* ---------- scenario bars (values straight from the LP results) ---------- */
+    function drawScenarios() {
+      const names = ["ฐานเดิม", "PV", "PV + BESS", "BESS + DR"], keys = ["base", "pv", "bess", "dr"];
+      const root = $("#scenario-bars");
+      root.innerHTML = "";
+      keys.forEach((k, i) => {
+        const s = D.scen[k], bill = s.net / 1000;
+        const line = document.createElement("div");
+        line.className = "scenario-row";
+        line.innerHTML = `<div class="scenario-name">${names[i]}</div>
+          <div class="scenario-track" role="img" aria-label="ค่าไฟ ${fmt(bill, 1)} พันบาทต่อเดือน">
+            <div class="scenario-fill ${k}" style="width:0%" data-w="${(bill / 210 * 100).toFixed(2)}%"></div></div>
+          <div class="scenario-money">${fmt(bill, 1)}k</div>
+          <div class="scenario-save">${s.savePct > 0.05 ? `−${fmt(s.savePct, 1)}%` : "baseline"}</div>`;
+        root.appendChild(line);
+      });
+    }
+    function animateWidths(slide) {
+      $$("[data-w]", slide).forEach(e => {
+        e.style.transition = "none";
+        e.style.width = "0%";
+        e.getBoundingClientRect();
+        e.style.transition = "";
+        requestAnimationFrame(() => requestAnimationFrame(() => { e.style.width = e.dataset.w; }));
+      });
+    }
+    $$(".payback-track i").forEach(e => { e.dataset.w = e.style.width; e.style.width = "0%"; });
+
+    /* ---------- count-up numbers ---------- */
+    const COUNT_SEL = ".metric .value, .statline .num, .micro b";
+    $$(COUNT_SEL).forEach(el => {
+      if (el.closest("[data-nocount]")) return;
+      const node = [...el.childNodes].find(c => c.nodeType === 3 && /\d/.test(c.nodeValue));
+      if (!node) return;
+      const m = node.nodeValue.match(/^(\s*[~≈]?\s*)(\d[\d,]*(?:\.\d+)?)([\s\S]*)$/);
+      if (m) el._cu = {node, pre: m[1], num: m[2], post: m[3]};
+    });
+    function runCount(slide) {
+      if (reduce) return;
+      $$(COUNT_SEL, slide).forEach(el => {
+        const c = el._cu;
+        if (!c) return;
+        const target = parseFloat(c.num.replace(/,/g, ""));
+        const dec = (c.num.split(".")[1] || "").length, comma = c.num.includes(",");
+        const show = v => c.pre + (comma ? v.toLocaleString("en-US", {minimumFractionDigits: dec, maximumFractionDigits: dec}) : v.toFixed(dec)) + c.post;
+        const id = el._cuId = (el._cuId || 0) + 1;
+        c.node.nodeValue = show(0);
+        const t0 = performance.now() + 220, dur = 1100 + Math.min(700, target);
+        (function frame(now) {
+          if (el._cuId !== id) return;
+          const t = Math.min(1, Math.max(0, (now - t0) / dur));
+          if (t < 1) { c.node.nodeValue = show(target * ease(t)); requestAnimationFrame(frame); }
+          else c.node.nodeValue = c.pre + c.num + c.post;
+        })(performance.now());
+      });
+    }
+
+    /* ================= LIVE DISPATCH EXPLORER ================= */
+    const EX = (() => {
+      const E_BAT = D.params.E;
+      const state = {sc: "dr", h: 7, playing: false, speed: 1, timer: 0, active: false};
+      const off = {pv: 0, grid: 0, chg: 0, dis: 0, hvac: 0};
+      const el = id => document.getElementById(id);
+      const setText = (id, t) => { const e = el(id); if (e.textContent !== t) e.textContent = t; };
+      const TL = {X: 44, Y: 14, W: 934, H: 138, BW: 934 / 24};
+      let ymax = 160;
+
+      function targets() {
+        const s = D.scen[state.sc].series, h = state.h;
+        let cum = 0;
+        for (let i = 0; i <= h; i++) cum += s.grid[i] * TOUPRICE[i];
+        return {load: D.load[h], pvAvail: D.pvAvail[h], pv: s.pv[h], grid: s.grid[h], charge: s.charge[h], discharge: s.discharge[h],
+          soc: s.soc[h], hvac: s.hvac[h], sp: s.setpoint[h], temp: D.Tamb[h], irr: D.G[h], cost: s.grid[h] * TOUPRICE[h], cum};
+      }
+
+      const lerp = makeLerper((c, dt) => {
+        const sc = state.sc, hasPV = sc !== "base", hasB = sc === "bess" || sc === "dr", hasH = sc === "dr";
+        const total = D.scen[sc].daily;
+        const flows = [["pv", c.pv, hasPV], ["grid", c.grid, true], ["chg", c.charge, hasB], ["dis", c.discharge, hasB], ["hvac", c.hvac, hasH]];
+        flows.forEach(([k, v, on]) => {
+          const p = el("f-" + k), val = on ? v : 0;
+          const w = val < .05 ? 0 : 1.6 + Math.sqrt(val / 120) * 13;
+          p.style.strokeWidth = w.toFixed(2);
+          p.style.opacity = Math.min(1, val / 1.5).toFixed(2);
+          p.style.strokeDasharray = `0.1 ${(w * 1.7 + 9).toFixed(1)}`;
+          off[k] += dt * (16 + val * 1.5);
+          p.style.strokeDashoffset = (-off[k]).toFixed(1);
+        });
+        setText("x-pv", hasPV ? fmt(c.pv, 1) + " kW" : "—");
+        setText("x-pvsub", hasPV ? `ผลิตได้ ${fmt(c.pvAvail, 1)} kW · ${fmt(c.irr, 0)} W/m²` : "ไม่มีระบบ PV");
+        setText("x-grid", fmt(c.grid, 1) + " kW");
+        setText("x-gridsub", `฿${TOUPRICE[state.h].toFixed(2)}/kWh`);
+        setText("x-load", fmt(c.load, 0) + " kW");
+        setText("x-ac", `แอร์ setpoint ${fmt(c.sp, 1)} °C`);
+        setText("x-temp", `อากาศภายนอก ${fmt(c.temp, 1)} °C`);
+        setText("x-hvac", hasH ? "−" + fmt(c.hvac, 1) + " kW" : "—");
+        setText("x-sp", hasH ? `setpoint ${fmt(c.sp, 1)} °C` : "ไม่มี BEMS/DR");
+        const frac = Math.max(0, Math.min(1, c.soc / E_BAT)), fh = 70 * frac;
+        el("x-socfill").setAttribute("y", (363 - fh).toFixed(1));
+        el("x-socfill").setAttribute("height", fh.toFixed(1));
+        setText("x-soc", hasB ? fmt(c.soc, 0) + " kWh" : "—");
+        setText("x-socpct", hasB ? fmt(frac * 100, 0) + "% SOC" : "ไม่มีแบตเตอรี่");
+        const net = c.charge - c.discharge;
+        setText("x-bat", !hasB ? "—" : net > .05 ? `ชาร์จ +${fmt(c.charge, 1)} kW` : net < -.05 ? `จ่าย −${fmt(c.discharge, 1)} kW` : "พัก");
+        setText("x-grid2", fmt(c.grid, 1) + " kW");
+        el("x-gridbar").style.width = Math.min(100, c.grid / 120 * 100).toFixed(1) + "%";
+        setText("x-soc2", hasB ? fmt(c.soc, 0) + " kWh" : "—");
+        el("x-socbar").style.width = (hasB ? frac * 100 : 0).toFixed(1) + "%";
+        setText("x-cost", "฿" + fmt(c.cost, 0));
+        setText("x-cum", `สะสมถึงชั่วโมงนี้ ฿${fmt(c.cum, 0)} จาก ฿${fmt(total, 0)} ต่อวัน`);
+        el("x-cumbar").style.width = Math.min(100, c.cum / total * 100).toFixed(1) + "%";
+      });
+
+      function buildTimeline() {
+        const svg = el("x-tl"), s = D.scen[state.sc].series, {X, Y, W, H, BW} = TL;
+        let mx = 0;
+        ["base", "pv", "bess", "dr"].forEach(k => D.load.forEach((l, i) => { mx = Math.max(mx, l + D.scen[k].series.charge[i]); }));
+        ymax = Math.ceil(mx / 40) * 40;
+        const parts = [];
+        for (let v = 0; v <= ymax; v += 40) {
+          const yy = Y + H - v / ymax * H;
+          parts.push(`<line class="gridline" x1="${X}" x2="${X + W}" y1="${yy}" y2="${yy}"/><text x="${X - 8}" y="${yy + 4}" text-anchor="end">${v}</text>`);
+        }
+        if (state.sc === "dr") parts.push(`<rect x="${X + 13 * BW}" y="${Y}" width="${3 * BW}" height="${H}" fill="#ffc56c" opacity=".10"/><text x="${X + 14.5 * BW}" y="${Y + 12}" text-anchor="middle" fill="#ffc56c">DR</text>`);
+        parts.push(`<g id="x-cur" style="transform:translateX(${X + state.h * BW}px)"><rect x="0" y="${Y - 4}" width="${BW}" height="${H + 8}" rx="6" fill="rgba(255,255,255,.07)" stroke="rgba(99,227,161,.55)"/></g>`);
+        const layers = [["pv", "#63e3a1"], ["discharge", "#83b9ff"], ["hvac", "#ffc56c"], ["grid", "#ff7d73"], ["charge", "#c1a6ff"]];
+        const bw = BW * .68;
+        for (let i = 0; i < 24; i++) {
+          let acc = 0;
+          layers.forEach(([key, col], li) => {
+            const v = s[key][i];
+            if (v < .05) return;
+            const hh = v / ymax * H;
+            parts.push(`<rect class="gbar" style="animation-delay:${i * 24 + li * 70}ms" x="${(X + i * BW + (BW - bw) / 2).toFixed(1)}" y="${(Y + H - (acc + v) / ymax * H).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" fill="${col}" ${key === "charge" ? 'opacity=".8"' : ""}/>`);
+            acc += v;
+          });
+          if (i % 3 === 0) parts.push(`<text x="${X + i * BW + BW / 2}" y="${Y + H + 20}" text-anchor="middle">${String(i).padStart(2, "0")}:00</text>`);
+        }
+        parts.push(`<line class="axisline" x1="${X}" x2="${X + W}" y1="${Y + H}" y2="${Y + H}"/>`);
+        for (let i = 0; i < 24; i++) parts.push(`<rect class="hit" data-h="${i}" x="${X + i * BW}" y="${Y}" width="${BW}" height="${H}"/>`);
+        svg.innerHTML = parts.join("");
+        $$(".hit", svg).forEach(r => {
+          const i = +r.dataset.h;
+          r.addEventListener("pointermove", ev => {
+            const q = D.scen[state.sc].series;
+            showTip(`<div class="head"><b>${D.times[i]}</b><span>${D.tou[i]}</span></div>`
+              + trow("#ffc56c", "โหลด", fmt(D.load[i], 0) + " kW")
+              + trow("#63e3a1", "PV ใช้", fmt(q.pv[i], 1) + " kW")
+              + trow("#83b9ff", "BESS จ่าย", fmt(q.discharge[i], 1) + " kW")
+              + trow("#c1a6ff", "BESS ชาร์จ", fmt(q.charge[i], 1) + " kW")
+              + trow("#ffc56c", "ลดแอร์", fmt(q.hvac[i], 1) + " kW")
+              + trow("#ff7d73", "Grid", fmt(q.grid[i], 1) + " kW"), ev.clientX, ev.clientY);
+          });
+          r.addEventListener("pointerleave", hideTip);
+          r.addEventListener("click", () => { play(false); state.h = i; sync(); });
+        });
+      }
+
+      function sync(snap) {
+        const sc = state.sc, h = state.h;
+        setText("x-clock", D.times[h]);
+        const peak = D.tou[h] === "On-Peak", t = el("x-tou");
+        t.textContent = D.tou[h];
+        t.className = "chip " + (peak ? "peak" : "off");
+        el("x-bldgrect").classList.toggle("peak", peak);
+        el("x-dr").hidden = !(sc === "dr" && h >= 13 && h <= 15);
+        el("x-range").value = h + 1;
+        el("x-range").style.setProperty("--p", (h / 23 * 100) + "%");
+        el("x-cur") && (el("x-cur").style.transform = `translateX(${TL.X + h * TL.BW}px)`);
+        el("n-pv").classList.toggle("dim", sc === "base");
+        el("n-bess").classList.toggle("dim", sc === "base" || sc === "pv");
+        el("n-hvac").classList.toggle("dim", sc !== "dr");
+        $$("#x-seg button").forEach(b => b.classList.toggle("on", b.dataset.sc === sc));
+        lerp.set(targets(), snap);
+      }
+
+      function play(on) {
+        state.playing = on;
+        clearInterval(state.timer);
+        if (on) state.timer = setInterval(() => { state.h = (state.h + 1) % 24; sync(); }, 1500 / state.speed);
+        el("x-play").textContent = on ? "❚❚" : "▶";
+        el("x-play").classList.toggle("playing", on);
+      }
+
+      el("x-play").addEventListener("click", () => play(!state.playing));
+      el("x-range").addEventListener("input", e => { play(false); state.h = +e.target.value - 1; sync(); });
+      $$("#x-seg button").forEach(b => b.addEventListener("click", () => { state.sc = b.dataset.sc; buildTimeline(); sync(); }));
+      $$("#x-speed button").forEach(b => b.addEventListener("click", () => {
+        state.speed = +b.dataset.speed;
+        $$("#x-speed button").forEach(o => o.classList.toggle("on", o === b));
+        if (state.playing) play(true);
+      }));
+
+      return {
+        start() {
+          state.active = true;
+          lerp.keep = true;
+          buildTimeline();
+          sync(true);
+          if (!reduce) play(true);
+        },
+        stop() { state.active = false; lerp.keep = false; play(false); hideTip(); }
+      };
+    })();
+
+    /* ================= DR WHAT-IF ================= */
+    const WI = (() => {
+      const sw = D.drSweep.filter(s => s.feasible);
+      const baseNet = D.scen.base.net;
+      const el = id => document.getElementById(id);
+      const setText = (id, t) => { const e = el(id); if (e.textContent !== t) e.textContent = t; };
+      const C = {X: 56, Y: 22, W: 570, H: 200, lo: 80, hi: 120};
+      let pct = 20;
+      const px = p => C.X + (p - 10) / 30 * C.W;
+      const py = v => C.Y + C.H - (v - C.lo) / (C.hi - C.lo) * C.H;
+      const row = p => sw.find(s => s.pct === p);
+
+      function drawChart() {
+        const svg = el("w-chart"), parts = [];
+        parts.push(`<defs><linearGradient id="wfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63e3a1" stop-opacity=".3"/><stop offset="1" stop-color="#63e3a1" stop-opacity="0"/></linearGradient></defs>`);
+        [80, 90, 100, 110, 120].forEach(v => parts.push(`<line class="gridline" x1="${C.X}" x2="${C.X + C.W}" y1="${py(v)}" y2="${py(v)}"/><text x="${C.X - 10}" y="${py(v) + 4}" text-anchor="end">${v}</text>`));
+        const pts = sw.map(s => [px(s.pct), py(s.net / 1000)]);
+        const d = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+        parts.push(`<path class="area" d="${d} L${pts[pts.length - 1][0]},${C.Y + C.H} L${pts[0][0]},${C.Y + C.H} Z" fill="url(#wfill)"/>`);
+        parts.push(`<path data-draw d="${d}" fill="none" stroke="#63e3a1" stroke-width="3"/>`);
+        sw.forEach((s, i) => {
+          parts.push(`<text x="${pts[i][0]}" y="${C.Y + C.H + 22}" text-anchor="middle">${s.pct}%</text>`);
+          parts.push(`<circle class="dot" style="animation-delay:${i * 90 + 500}ms" cx="${pts[i][0]}" cy="${pts[i][1]}" r="4.5" fill="#071713" stroke="#63e3a1" stroke-width="2"/>`);
+          parts.push(`<circle class="hit" data-p="${s.pct}" cx="${pts[i][0]}" cy="${pts[i][1]}" r="16"/>`);
+        });
+        parts.push(`<g id="w-mark"><line id="w-drop" x1="0" x2="0" y1="0" y2="0" stroke="#ffc56c" stroke-dasharray="4 4" opacity=".7"/>
+          <circle r="9" fill="#ffc56c" stroke="#071713" stroke-width="3"/><text id="w-mlab" y="-16" text-anchor="middle" fill="#ffe0a6" font-weight="800"></text></g>`);
+        parts.push(`<text x="${C.X + C.W / 2}" y="${C.Y + C.H + 46}" text-anchor="middle">ระดับคำขอ DR (% ของ baseline)</text>`);
+        parts.push(`<text x="14" y="${C.Y + C.H / 2}" text-anchor="middle" transform="rotate(-90 14 ${C.Y + C.H / 2})">บิลสุทธิ (พันบาท/เดือน)</text>`);
+        svg.innerHTML = parts.join("");
+        $$(".hit", svg).forEach(c => {
+          c.addEventListener("click", () => setPct(+c.dataset.p));
+          c.addEventListener("pointermove", ev => {
+            const s = row(+c.dataset.p);
+            showTip(`<div class="head"><b>DR ${s.pct}%</b><span>LP re-solve</span></div>` + trow("#63e3a1", "บิลสุทธิ", fmt(s.net / 1000, 1) + " พันบาท")
+              + trow("#ffc56c", "Peak On-Peak", fmt(s.peak, 1) + " kW") + trow("#83b9ff", "BESS ใน DR", fmt(s.bess, 1) + " kWh"), ev.clientX, ev.clientY);
+          });
+          c.addEventListener("pointerleave", hideTip);
+        });
+      }
+
+      const lerp = makeLerper(c => {
+        setText("w-pct", String(Math.round(c.pct)));
+        const tot = c.bess + c.hvac || 1;
+        el("w-s1").style.width = (c.bess / tot * 100).toFixed(1) + "%";
+        el("w-s2").style.width = (c.hvac / tot * 100).toFixed(1) + "%";
+        setText("w-bess", fmt(c.bess, 1));
+        setText("w-hvac", fmt(c.hvac, 1));
+        setText("w-dr", fmt(c.dr, 1));
+        setText("w-inc", fmt(c.inc, 0));
+        setText("w-set", fmt(c.set, 1) + "°C");
+        setText("w-net", fmt(c.net / 1000, 1));
+        setText("w-sav", fmt(c.sav, 1) + "%");
+        setText("w-peak", fmt(c.peak, 1));
+        const m = el("w-mark");
+        if (m) {
+          const x = px(c.pct), y = py(c.net / 1000);
+          m.style.transform = `translate(${x}px, ${y}px)`;
+          const dr = el("w-drop");
+          dr.setAttribute("y2", (C.Y + C.H - y).toFixed(1));
+          setText("w-mlab", fmt(c.net / 1000, 1) + "k");
+        }
+      }, 7);
+
+      function note() {
+        const s = row(pct);
+        const bessShare = s.bess / s.dr_kwh * 100;
+        let t = `<strong>อ่านผล:</strong> ที่ DR ${pct}% แอร์ถูกดึงเต็มที่ ${fmt(s.hvac, 1)} kWh (setpoint ${fmt(s.maxSet, 0)}°C) ส่วนที่เหลือ ${fmt(s.bess, 1)} kWh (${fmt(bessShare, 0)}%) มาจากแบตเตอรี่ `;
+        if (s.peak <= D.scen.bess.peak + 0.05) t += `— Peak On-Peak ลงมาแตะ ~${fmt(s.peak, 0)} kW เท่ากับกรณี PV+BESS ล้วน การเพิ่ม DR ต่อจากนี้ไม่ลด demand charge เพิ่ม แต่ DR credit ยังโตตามพลังงานที่ลด `;
+        else t += `— Peak On-Peak อยู่ที่ ${fmt(s.peak, 1)} kW เพราะชั่วโมง DR ตรงกับช่วงโหลดสูง จึงช่วยลดทั้งพลังงานและ demand charge `;
+        t += `· ค่าตอบแทน 5 บาท/kWh เป็นสมมติฐานของโจทย์ ยังไม่รวม baseline/เงื่อนไขปรับของโครงการ DR จริง`;
+        el("w-note").innerHTML = t;
+      }
+
+      function targets() {
+        const s = row(pct);
+        return {pct, bess: s.bess, hvac: s.hvac, dr: s.dr_kwh, inc: s.income, set: s.maxSet, net: s.net, sav: s.saving / baseNet * 100, peak: s.peak};
+      }
+      function setPct(p, snap) {
+        pct = p;
+        const r = el("w-range");
+        r.value = p;
+        r.style.setProperty("--p", ((p - 10) / 30 * 100) + "%");
+        note();
+        lerp.set(targets(), snap);
+      }
+      el("w-range").addEventListener("input", e => setPct(+e.target.value));
+
+      return {
+        start() { drawChart(); animateStroke(el("w-chart")); lerp.set(targets(), true); setPct(pct, true); },
+        stop() { hideTip(); }
+      };
+    })();
+
+    /* ================= AMBIENT BACKGROUND ================= */
+    (function ambient() {
+      const cv = $("#ambient"), ctx = cv.getContext("2d");
+      let W = 0, H = 0, dpr = 1, mx = -999, my = -999;
+      const parts = [];
+      function resize() { dpr = Math.min(devicePixelRatio || 1, 1.5); W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; }
+      function spawn(init) {
+        return {x: Math.random() * W, y: init ? Math.random() * H : H + 20, r: (Math.random() * 1.7 + .6) * dpr,
+          vy: -(Math.random() * .22 + .06) * dpr, vx: (Math.random() - .5) * .1 * dpr, a: Math.random() * .5 + .18,
+          c: Math.random() < .22 ? "255,197,108" : "99,227,161", ph: Math.random() * 6.28};
+      }
+      resize();
+      const N = innerWidth < 700 ? 30 : 62;
+      for (let i = 0; i < N; i++) parts.push(spawn(true));
+      addEventListener("resize", resize);
+      addEventListener("pointermove", e => { mx = e.clientX * dpr; my = e.clientY * dpr; }, {passive: true});
+      let t = 0;
+      function frame() {
+        t += .016;
+        ctx.clearRect(0, 0, W, H);
+        if (mx > 0) {
+          const g = ctx.createRadialGradient(mx, my, 0, mx, my, 260 * dpr);
+          g.addColorStop(0, "rgba(99,227,161,.07)");
+          g.addColorStop(1, "rgba(99,227,161,0)");
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+        }
+        for (const p of parts) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.y < -20) Object.assign(p, spawn(false));
+          const a = p.a * (.6 + .4 * Math.sin(t * 1.2 + p.ph));
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${p.c},${a})`;
+          ctx.arc(p.x, p.y, p.r, 0, 6.283);
+          ctx.fill();
+        }
+        ctx.lineWidth = dpr * .6;
+        for (let i = 0; i < parts.length; i++) {
+          for (let j = i + 1; j < parts.length; j++) {
+            const dx = parts[i].x - parts[j].x, dy = parts[i].y - parts[j].y, d2 = dx * dx + dy * dy, R = 130 * dpr;
+            if (d2 < R * R) {
+              ctx.strokeStyle = `rgba(99,227,161,${(1 - Math.sqrt(d2) / R) * .10})`;
+              ctx.beginPath(); ctx.moveTo(parts[i].x, parts[i].y); ctx.lineTo(parts[j].x, parts[j].y); ctx.stroke();
+            }
+          }
+        }
+        if (!document.hidden) requestAnimationFrame(frame);
+      }
+      if (!reduce) {
+        requestAnimationFrame(frame);
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) requestAnimationFrame(frame); });
+      }
+    })();
+
+    /* ================= GLUE ================= */
+    slides.forEach(s => {
+      let i = 0;
+      $$(".slide-inner > *, .slide-inner .grid > *, .ladder > .step, .flow > .flow-node, .building-layout > *, .explorer > *", s).forEach(e => {
+        if (e.classList.contains("rv")) return;
+        e.classList.add("rv");
+        e.style.setProperty("--i", Math.min(i++, 14));
+      });
+    });
+
+    const coverArt = $(".cover-art");
+    document.addEventListener("pointermove", e => {
+      const c = e.target.closest && e.target.closest(".card, .metric");
+      if (c) {
+        const r = c.getBoundingClientRect();
+        c.style.setProperty("--mx", ((e.clientX - r.left) / fitScale) + "px");
+        c.style.setProperty("--my", ((e.clientY - r.top) / fitScale) + "px");
+      }
+      if (current === 0 && coverArt && !reduce) {
+        const dx = e.clientX / innerWidth - .5, dy = e.clientY / innerHeight - .5;
+        coverArt.style.transform = `perspective(1000px) rotateY(${(dx * 9).toFixed(2)}deg) rotateX(${(-dy * 7).toFixed(2)}deg)`;
+      }
+    }, {passive: true});
+
+    setInterval(() => {
+      if (reduce || !slides[current] || slides[current].dataset.title !== "ขนาดแผงและพื้นที่ใช้งาน") return;
+      const sp = $$("#module-grid span"), e = sp[Math.floor(Math.random() * sp.length)];
+      e.classList.add("spark");
+      setTimeout(() => e.classList.remove("spark"), 1000);
+    }, 260);
+
+    function wipeGo(back) {
+      const w = $("#wipe");
+      w.classList.remove("go", "back");
+      void w.offsetWidth;
+      w.classList.add("go");
+      if (back) w.classList.add("back");
+    }
+
+    window.onSlideEnter = function (slide, prev) {
+      const idx = slides.indexOf(slide);
+      fitSlide(slide, false);
+      slides.forEach(s => s.classList.remove("dir-next", "dir-prev"));
+      if (!reduce && prev !== idx) { slide.classList.add(idx > prev ? "dir-next" : "dir-prev"); wipeGo(idx < prev); }
+      hideTip();
+      runCount(slide);
+      if ($("#profile-chart", slide)) { drawProfile(); animateStroke($("#profile-chart")); }
+      if ($("#dr-chart", slide)) drawDR();
+      if ($("#scenario-bars", slide) || $(".area-bar", slide)) animateWidths(slide);
+      if (slide.dataset.enter === "explorer") EX.start(); else EX.stop();
+      if (slide.dataset.enter === "whatif") WI.start(); else WI.stop();
+    };
+
+    addEventListener("beforeprint", () => {
+      $$("[data-w]").forEach(e => { e.style.transition = "none"; e.style.width = e.dataset.w; });
+    });
+
+    drawProfile();
+    drawDR();
+    drawScenarios();
+
+    /* ================= FIT-TO-SCREEN ================= */
+    var fitScale = 1;
+    const deckEl = document.getElementById("deck"), dockEl = document.querySelector(".controls");
+    const CANDS = [400, 440, 480, 520, 560, 600, 650, 700, 760, 820, 900, 980, 1060, 1140, 1220, 1300, 1400, 1500, 1640, 1800, 2000];
+    const CAP = 1.4, MIN_OK = 0.62;
+
+    function measureAt(inner, W) {
+      inner.style.width = W + "px";
+      inner.classList.toggle("w9", W <= 900);
+      inner.classList.toggle("w5", W <= 560);
+      const h = inner.offsetHeight, sw = inner.scrollWidth;
+      return {W: Math.max(W, sw), h};
+    }
+    function fitSlide(slide, lock) {
+      if (!slide) return;
+      const inner = slide.querySelector(".slide-inner");
+      if (!inner) return;
+      const dW = deckEl.clientWidth, dH = deckEl.clientHeight;
+      if (!dW || !dH) return;
+      const small = dW < 700;
+      const padX = small ? 10 : 56, padT = dH < 480 ? 6 : small ? 10 : 20;
+      const dock = dockEl.getBoundingClientRect();
+      const padB = Math.max(10, dH - dock.top + (dH < 480 ? 3 : 8));
+      const aW = Math.max(100, dW - padX * 2), aH = Math.max(100, dH - padT - padB);
+      const startW = parseFloat(inner.style.width) || 0;
+      const cands = lock && startW ? [startW] : CANDS;
+      let best = null;
+      for (let level = lock ? (slide.classList.contains("trim2") ? 2 : slide.classList.contains("trim1") ? 1 : 0) : 0; level <= 2; level++) {
+        slide.classList.toggle("trim1", level >= 1);
+        slide.classList.toggle("trim2", level >= 2);
+        best = null;
+        for (const W of cands) {
+          const m = measureAt(inner, W);
+          const s = Math.min(aW / m.W, aH / m.h, CAP);
+          const score = s + 0.002 * (m.W * m.h * s * s) / (aW * aH);
+          if (!best || score > best.score) best = {...m, s, score, Wl: W};
+        }
+        if (best.s >= MIN_OK || lock) break;
+      }
+      measureAt(inner, best.Wl);
+      const x = padX + (aW - best.W * best.s) / 2, y = padT + (aH - best.h * best.s) / 2;
+      inner.style.transform = `translate(${x.toFixed(1)}px, ${Math.max(padT * .5, y).toFixed(1)}px) scale(${best.s.toFixed(4)})`;
+      inner.setAttribute("data-fit", "1");
+      fitScale = best.s;
+    }
+    let fitTimer = 0;
+    function fitSoon(lock) { cancelAnimationFrame(fitTimer); fitTimer = requestAnimationFrame(() => fitSlide(slides[current], lock)); }
+    new ResizeObserver(() => fitSoon(false)).observe(deckEl);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitSoon(false));
+    const noteEl = document.getElementById("w-note");
+    if (noteEl) new MutationObserver(() => fitSoon(true)).observe(noteEl, {childList: true, subtree: true, characterData: true});
+    addEventListener("beforeprint", () => {
+      slides.forEach(s => s.classList.remove("trim1", "trim2"));
+      document.querySelectorAll(".slide-inner").forEach(i => { i.style.width = ""; i.style.transform = ""; i.classList.remove("w9", "w5"); });
+    });
+    addEventListener("afterprint", () => fitSlide(slides[current], false));
+
+    EX.start(); EX.stop(); WI.start(); WI.stop();
+    goTo(0);
+  </script>
+</body>
+</html>
